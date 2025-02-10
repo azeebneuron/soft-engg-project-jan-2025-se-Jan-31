@@ -195,7 +195,7 @@ Based on the requirements document, we need to implement:
 3. Use emits for component communication
 4. Follow BEM methodology for CSS class naming
 5. Maintain consistent file structure:
-   ```
+```
 Directory structure:
 └── /vue-project/
     ├── .editorconfig

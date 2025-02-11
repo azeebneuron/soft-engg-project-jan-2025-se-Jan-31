@@ -1,56 +1,73 @@
 <template>
-  <div class="chat-app">
-    <!-- Sidebar for Conversation History -->
+  <div :class="isDarkMode ? 'dark-mode' : 'light-mode'" class="chat-app">
+    <div class="grid-background"></div>
+    <div class="grid-fade"></div>
+    
+    <!-- Refined Sidebar -->
     <div class="sidebar" :class="{ hidden: isSidebarHidden }">
-      <button class="new-chat-button" @click="startNewChat">➕ New Chat</button>
-      <transition name="slide">
-        <ul v-show="!isSidebarHidden">
-          <li v-for="(conversation, index) in conversationHistory" :key="index" @click="loadConversation(conversation)">
-            🗨️ {{ conversation.title }}
-          </li>
-        </ul>
-      </transition>
+      <button class="new-chat-button" @click="startNewChat">
+        <span class="gradient-text">New Conversation</span>
+      </button>
+      
+      <div class="conversation-list">
+        <div v-for="(conversation, index) in conversationHistory" 
+             :key="index" 
+             @click="loadConversation(conversation)"
+             :class="['conversation-item', { active: currentConversation.id === conversation.id }]">
+          <span class="conversation-icon">💭</span>
+          <span class="conversation-title">{{ conversation.title }}</span>
+        </div>
+      </div>
     </div>
-    <button class="sidebar-toggle" @click="toggleSidebar">☰</button>
 
-    <!-- Chat Interface -->
+    <!-- Main Chat Area -->
     <div class="chat-interface" :class="{ expanded: isSidebarHidden }">
-      <div class="chat-container">
-        <!-- Chat Header -->
-        <div class="chat-header">
-          <button class="sidebar-toggle-inline" @click="toggleSidebar">☰</button>
-          <h2>💬 {{ currentConversation.title }}</h2>
-          <div class="chat-status">
-            <span class="status-indicator"></span>
-            Ready to help
+      <!-- Refined Header -->
+      <div class="chat-header">
+        <button class="sidebar-toggle" @click="toggleSidebar">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12h18M3 6h18M3 18h18"/>
+          </svg>
+        </button>
+        <h2 class="gradient-text">{{ currentConversation.title }}</h2>
+        <div class="chat-status">
+          <span class="status-indicator"></span>
+          Active
+        </div>
+      </div>
+
+      <!-- Messages Area -->
+      <div class="chat-messages" ref="messageContainer">
+        <div v-if="currentConversation.messages.length === 0" class="welcome-message">
+          <h2>
+            <span class="title-regular">Welcome to</span>
+            <span class="title-fancy">Chat</span>
+          </h2>
+          <p>Start your conversation below</p>
+        </div>
+        
+        <div v-for="message in currentConversation.messages" 
+             :key="message.id" 
+             :class="['message', message.type]">
+          <div class="message-content">
+            <div class="message-text">{{ message.text }}</div>
+            <div class="message-time">{{ message.timestamp }}</div>
           </div>
         </div>
+      </div>
 
-        <!-- Chat Messages -->
-        <div class="chat-messages" ref="messageContainer">
-          <div v-if="currentConversation.messages.length === 0" class="welcome-text">
-            👋 Welcome! Start a conversation by typing a message below.
-          </div>
-          <div v-for="message in currentConversation.messages" :key="message.id" 
-               :class="['message', message.type]">
-            <div class="message-content">
-              <div class="message-text">{{ message.text }}</div>
-              <div class="message-time">⏳ {{ message.timestamp }}</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Input Area -->
-        <div class="chat-input" :class="{ expanded: isSidebarHidden }">
+      <!-- Input Area -->
+      <div class="chat-input-container">
+        <div class="chat-input-wrapper">
           <textarea 
             v-model="newMessage" 
             @keyup.enter.prevent="sendMessage"
-            placeholder="Ask anything about your courses..."
+            placeholder="Type your message..."
             rows="1"
             ref="messageInput"
           ></textarea>
-          <button @click="sendMessage" class="send-button">
-            🚀
+          <button @click="sendMessage" class="send-button" :disabled="!newMessage.trim()">
+            Send
           </button>
         </div>
       </div>
@@ -63,10 +80,11 @@ export default {
   name: 'ChatInterface',
   data() {
     return {
+      isDarkMode: true,
       messages: [],
       newMessage: '',
-      conversationHistory: [{ id: 1, title: 'Chat 1', messages: [] }],
-      currentConversation: { id: 1, title: 'Chat 1', messages: [] },
+      conversationHistory: [{ id: 1, title: 'New Conversation', messages: [] }],
+      currentConversation: { id: 1, title: 'New Conversation', messages: [] },
       isSidebarHidden: false
     };
   },
@@ -78,7 +96,7 @@ export default {
         id: Date.now(),
         type: 'user',
         text: this.newMessage,
-        timestamp: new Date().toLocaleTimeString()
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       });
 
       setTimeout(() => {
@@ -86,7 +104,7 @@ export default {
           id: Date.now(),
           type: 'ai',
           text: 'I understand your question. Let me help you with that...',
-          timestamp: new Date().toLocaleTimeString()
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         });
       }, 1000);
 
@@ -104,7 +122,11 @@ export default {
     },
     startNewChat() {
       const newChatId = this.conversationHistory.length + 1;
-      const newChat = { id: newChatId, title: `Chat ${newChatId}`, messages: [] };
+      const newChat = { 
+        id: newChatId, 
+        title: `New Conversation ${newChatId}`, 
+        messages: [] 
+      };
       this.conversationHistory.push(newChat);
       this.currentConversation = newChat;
     },
@@ -117,20 +139,53 @@ export default {
 
 <style scoped>
 .chat-app {
+  min-height: 100vh;
   display: flex;
-  height: 100vh;
-  background: #121212;
+  background: #030303;
   color: white;
-  font-family: 'Inter', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+.grid-background {
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  right: -50%;
+  bottom: -50%;
+  width: 200%;
+  height: 200%;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 30px 30px;
+  transform: perspective(500px) rotateX(60deg);
+  animation: grid-move 20s linear infinite;
+  z-index: 1;
+}
+
+.grid-fade {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(
+    circle at center,
+    transparent 0%,
+    rgba(3, 3, 3, 0.5) 70%,
+    rgba(3, 3, 3, 0.95) 100%
+  );
+  z-index: 2;
 }
 
 .sidebar {
-  width: 250px;
-  background: #1e1e1e;
-  padding: 1rem;
-  overflow-y: auto;
+  width: 280px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
   border-right: 1px solid rgba(255, 255, 255, 0.1);
-  transition: width 0.3s ease;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 10;
 }
 
 .sidebar.hidden {
@@ -139,153 +194,232 @@ export default {
   overflow: hidden;
 }
 
-.sidebar-toggle {
-  position: absolute;
-  top: 1rem;
-  left: 260px;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: white;
-  transition: left 0.3s ease;
-}
-
-.sidebar-toggle-inline {
-  font-size: 1.2rem;
-  cursor: pointer;
-  background: none;
+.new-chat-button {
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
   border: none;
+  border-radius: 0.5rem;
   color: white;
-  margin-right: 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  margin-bottom: 1.5rem;
 }
 
-.sidebar.hidden + .sidebar-toggle {
-  left: 10px;
+.new-chat-button:hover {
+  opacity: 0.9;
+}
+
+.conversation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.conversation-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.conversation-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.conversation-item.active {
+  background: rgba(99, 102, 241, 0.2);
 }
 
 .chat-interface {
-  flex-grow: 1;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 1rem;
-  background: #181818;
-  transition: margin-left 0.3s ease;
+  position: relative;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(10px);
 }
 
-.chat-interface.expanded {
-  margin-left: 0;
-}
-
-.chat-input {
+.chat-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
-  padding: 1rem;
-  background: #222222;
-  border-radius: 10px;
-  transition: width 0.3s ease;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.05);
 }
 
-.chat-input.expanded {
-  width: 100%;
+.gradient-text {
+  background: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
+  -webkit-background-clip: text;
+  color: transparent;
 }
 
-.welcome-text {
-  text-align: center;
-  font-size: 1rem;
+.chat-status {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
   color: rgba(255, 255, 255, 0.6);
-  margin-top: 20%;
 }
-.chat-container {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-  }
-  .chat-header {
-      padding-bottom: 1rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .chat-status {
-      display: flex;
-      align-items: center;
-    }
-    
-    .status-indicator {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #10B981;
-      margin-right: 0.5rem;
-      animation: pulse 1.5s infinite;
-    }
-    
-    @keyframes pulse {
-      0% { opacity: 1; }
-      50% { opacity: 0.5; }
-      100% { opacity: 1; }
-    }
-    
-    .chat-messages {
-      flex-grow: 1;
-      overflow-y: auto;
-      padding: 1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      scroll-behavior: smooth;
-    }
-    
-    .message {
-      max-width: 75%;
-      padding: 0.85rem;
-      border-radius: 1rem;
-      font-size: 1rem;
-      transition: opacity 0.3s ease-in;
-    }
-    
-    .message.user {
-      align-self: flex-end;
-      background: #4f46e5;
-      color: white;
-    }
-    
-    .message.ai {
-      align-self: flex-start;
-      background: rgba(255, 255, 255, 0.1);
-      color: white;
-    }
-    
-    .chat-input {
-      display: flex;
-      padding: 1rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    textarea {
-      flex-grow: 1;
-      background: transparent;
-      border: none;
-      padding: 0.75rem;
-      color: inherit;
-      resize: none;
-    }
-    
-    .send-button {
-      background: #4f46e5;
-      border: none;
-      border-radius: 50%;
-      padding: 0.75rem;
-      color: white;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.2s ease-in-out;
-    }
-    
-    .send-button:hover {
-      transform: scale(1.1);
-    }
 
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgb(99, 102, 241);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.welcome-message {
+  text-align: center;
+  margin: auto;
+}
+
+.title-regular {
+  display: block;
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.title-fancy {
+  font-family: 'Pacifico', cursive;
+  font-size: 2.5rem;
+  background: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.message {
+  max-width: 80%;
+  padding: 1rem;
+  border-radius: 1rem;
+  backdrop-filter: blur(10px);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.message.user {
+  align-self: flex-end;
+  background: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
+  color: white;
+}
+
+.message.ai {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.message-time {
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
+  opacity: 0.6;
+}
+
+.chat-input-container {
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.chat-input-wrapper {
+  display: flex;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+textarea {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 0.9375rem;
+  resize: none;
+  padding: 0.5rem;
+}
+
+textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+textarea:focus {
+  outline: none;
+}
+
+.send-button {
+  padding: 0.5rem 1.25rem;
+  background: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
+  border: none;
+  border-radius: 0.5rem;
+  color: white;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.send-button:hover {
+  opacity: 0.9;
+}
+
+.send-button:disabled {
+  background: rgba(255, 255, 255, 0.1);
+  cursor: not-allowed;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+@keyframes grid-move {
+  0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
+  100% { transform: perspective(500px) rotateX(60deg) translateY(30px); }
+}
+
+.sidebar-toggle {
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s ease;
+}
+
+.sidebar-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: absolute;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+  }
+  
+  .chat-interface {
+    width: 100%;
+  }
+}
 </style>

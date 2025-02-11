@@ -73,6 +73,9 @@
       </div>
     </div>
   </div>
+  <footer class="Dobby-footer">
+    Dobby is still wortking on this feature
+  </footer>
 </template>
 
 <script>
@@ -258,7 +261,7 @@ export default {
 .gradient-text {
   background: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
   -webkit-background-clip: text;
-  color: transparent;
+  color: whitesmoke;
 }
 
 .chat-status {
@@ -418,8 +421,28 @@ textarea:focus {
     background: rgba(0, 0, 0, 0.95);
   }
   
-  .chat-interface {
-    width: 100%;
-  }
+/* Added Footer Styles */
+.Dobby-footer {
+  padding: 1rem;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.875rem;
+  position: relative;
+  z-index: 10;
+}
+
+/* Adjust chat-interface to accommodate footer */
+.chat-interface {
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-messages {
+  flex: 1;
+  min-height: 0; /* This ensures proper scrolling with footer */
+}
 }
 </style>

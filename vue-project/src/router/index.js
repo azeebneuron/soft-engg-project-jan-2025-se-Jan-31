@@ -32,6 +32,11 @@ const router = createRouter({
       name: 'dashboard',
       component: () => import('../views/StudentDashboard.vue')
     },
+    {
+      path: '/chatbot',
+      name: 'chatbot',
+      component: () => import('../views/ChatInterface.vue')
+    }
 
   ],
 })

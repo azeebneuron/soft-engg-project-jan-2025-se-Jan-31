@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import SignUp from '../views/SignUp.vue'    // Add direct import
 import SignIn from '../views/SignIn.vue'    // Add direct import
+import DeadlineSection from '../views/DeadlineSection.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -22,6 +23,11 @@ const router = createRouter({
       component: SignIn,    // Use direct import instead of lazy loading for now
     },
     {
+      path: '/deadline',
+      name: 'deadline',
+      component: DeadlineSection,    // Use direct import instead of lazy loading for now
+    },
+    {
       path: '/dashboard',
       name: 'dashboard',
       component: () => import('../views/StudentDashboard.vue')
@@ -30,8 +36,12 @@ const router = createRouter({
       path: '/feedback',
       name: 'feedback',
       component: () => import('../views/FeedbackForm.vue')
+    },
+    {                      
+      path: '/chatbot',
+      name: 'chatbot',
+      component: () => import('../views/ChatInterface.vue')
     }
-
   ],
 })
 

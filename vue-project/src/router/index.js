@@ -33,11 +33,15 @@ const router = createRouter({
       component: () => import('../views/StudentDashboard.vue')
     },
     {
+      path: '/feedback',
+      name: 'feedback',
+      component: () => import('../views/FeedbackForm.vue')
+    },
+    {                      
       path: '/chatbot',
       name: 'chatbot',
       component: () => import('../views/ChatInterface.vue')
     }
-
   ],
 })
 

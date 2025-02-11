@@ -26,6 +26,11 @@ const router = createRouter({
       name: 'dashboard',
       component: () => import('../views/StudentDashboard.vue')
     },
+    {
+      path: '/feedback',
+      name: 'feedback',
+      component: () => import('../views/FeedbackForm.vue')
+    }
 
   ],
 })

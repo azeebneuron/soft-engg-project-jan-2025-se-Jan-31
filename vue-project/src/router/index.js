@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import SignUp from '../views/SignUp.vue'    // Add direct import
 import SignIn from '../views/SignIn.vue'    // Add direct import
-import deadline from '../views/deadline.vue'
+import DeadlineSection from '../views/DeadlineSection.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -25,7 +25,7 @@ const router = createRouter({
     {
       path: '/deadline',
       name: 'deadline',
-      component: deadline,    // Use direct import instead of lazy loading for now
+      component: DeadlineSection,    // Use direct import instead of lazy loading for now
     },
     {
       path: '/dashboard',

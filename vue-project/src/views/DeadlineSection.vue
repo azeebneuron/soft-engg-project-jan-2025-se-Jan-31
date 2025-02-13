@@ -67,6 +67,7 @@
 
 <script>
 export default {
+  name: 'DeadlineSection',
   data() {
     return {
       courses: [

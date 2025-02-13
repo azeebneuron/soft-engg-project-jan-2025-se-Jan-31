@@ -16,6 +16,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.18.0",
+    "@mdi/js": "^7.4.47",
     "@vitejs/plugin-vue": "^5.2.1",
     "@vue/eslint-config-prettier": "^10.1.0",
     "eslint": "^9.18.0",

@@ -2,8 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import SignUp from '../views/SignUp.vue'    // Add direct import
 import SignIn from '../views/SignIn.vue'    // Add direct import
-import deadline from '../views/deadline.vue'
-import DeadlineSection from '@/views/DeadlineSection.vue'
+import DeadlineSection from '../views/DeadlineSection.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -33,7 +32,16 @@ const router = createRouter({
       name: 'dashboard',
       component: () => import('../views/StudentDashboard.vue')
     },
-
+    {
+      path: '/feedback',
+      name: 'feedback',
+      component: () => import('../views/FeedbackForm.vue')
+    },
+    {                      
+      path: '/chatbot',
+      name: 'chatbot',
+      component: () => import('../views/ChatInterface.vue')
+    }
   ],
 })
 

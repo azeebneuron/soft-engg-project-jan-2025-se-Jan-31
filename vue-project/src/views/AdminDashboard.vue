@@ -1,122 +1,170 @@
 <template>
     <div :class="isDarkMode ? 'dark-mode' : 'light-mode'" class="dashboard-container">
-      <header class="dashboard-header">
-        <h1 class="dashboard-title">
-          <span class="title-regular">Welcome, Admin !!!!</span>
-          
-        </h1>
-        <p class="dashboard-subtitle">Here's your command center</p>
-      </header>
+      <div class="dashboard-content">
+        <!-- welcome section -->
+        <header class="dashboard-header">
+          <h1 class="dashboard-title">
+            <span class="title-regular">Welcome,</span>
+            <span class="title-fancy">Admin !!</span>
+          </h1>
+          <p class="dashboard-subtitle">Manage your institution efficiently !!</p>
+        </header>
   
-      <main class="dashboard-content">
-        <section class="user-management animate-fade-in">
-          <h2>User Management</h2>
-          <ul class="user-list">
-            <li v-for="user in users" :key="user.id" class="user-item animate-slide-in">
-              <div class="user-info">
-                <span class="user-avatar">{{ user.name[0] }}</span>
-                <div class="user-details">
-                  <span class="user-name">{{ user.name }}</span>
-                  <span class="user-email">{{ user.email }}</span>
+        <!-- Stats -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>Total Users</h3>
+            <p class="stat-value">1,234</p>
+            <p class="stat-trend positive">↑ 5% this month</p>
+          </div>
+          <div class="stat-card">
+            <h3>Active Courses</h3>
+            <p class="stat-value">42</p>
+            <p class="stat-trend">3 new this semester</p>
+          </div>
+          <div class="stat-card">
+            <h3>Total Queries</h3>
+            <p class="stat-value">856</p>
+            <p class="stat-trend positive">↑ 12% this week</p>
+          </div>
+          <div class="stat-card">
+            <h3>Support Tickets</h3>
+            <p class="stat-value">15</p>
+            <p class="stat-trend negative">5 urgent</p>
+          </div>
+        </div>
+  
+        <!-- Main Dashboard  -->
+        <div class="dashboard-grid">
+          <!-- User Management -->
+          <div class="dashboard-card user-management-card">
+            <div class="card-header">
+              <h2>User Management</h2>
+              <button class="action-btn" @click="addUser">Add User</button>
+            </div>
+            <div class="user-list">
+              <div v-for="user in users" :key="user.id" class="user-item">
+                <div class="user-info">
+                  <h4>{{ user.name }}</h4>
+                  <p>{{ user.email }}</p>
+                </div>
+                <div class="user-actions">
+                  <button class="btn btn-edit" @click="editUser(user.id)">Edit</button>
+                  <button class="btn btn-delete" @click="deleteUser(user.id)">Delete</button>
                 </div>
               </div>
-              <div class="user-actions">
-                <button class="btn btn-edit" @click="editUser(user.id)">Edit</button>
-                <button class="btn btn-delete" @click="deleteUser(user.id)">Delete</button>
-              </div>
-            </li>
-          </ul>
-          <button class="btn btn-add" @click="addUser">Add User</button>
-        </section>
+            </div>
+          </div>
   
-        <section class="report-section animate-fade-in">
-          <h2>Generate Report</h2>
-          <button class="btn btn-report" @click="generateReport">Generate User Report</button>
-        </section>
-      </main>
+          <!-- Course Section -->
+          <div class="dashboard-card course-management-card">
+            <div class="card-header">
+              <h2>Course Management</h2>
+              <button class="action-btn" @click="addCourse">Add Course</button>
+            </div>
+            <div class="course-list">
+              <div v-for="course in courses" :key="course.id" class="course-item">
+                <h4>{{ course.name }}</h4>
+                <p>Enrolled: {{ course.enrolledStudents }}</p>
+                <button class="btn btn-edit" @click="editCourse(course.id)">Edit</button>
+              </div>
+            </div>
+          </div>
+  
+          <!-- Reports -->
+          <div class="dashboard-card reports-card">
+            <div class="card-header">
+              <h2>Reports</h2>
+            </div>
+            <div class="report-list">
+              <button class="report-btn" @click="generateReport('enrollment')">Enrollment Report</button>
+              <button class="report-btn" @click="generateReport('performance')">Performance Report</button>
+              
+            </div>
+          </div>
+  
+          <!-- System Settings -->
+          <div class="dashboard-card settings-card">
+            <div class="card-header">
+              <h2>System Settings</h2>
+            </div>
+            <div class="settings-list">
+              <button class="settings-btn" @click="openSettings('general')">General Settings</button>
+              <button class="settings-btn" @click="openSettings('security')">Security Settings</button>
+              <button class="settings-btn" @click="openSettings('notifications')">Notification Settings</button>
+            </div>
+          </div>
+        </div>
+      </div>
   
       <footer class="dashboard-footer">
-        © 2025 Admin Dashboard
+        © 2025 Admin Dashboard. All rights reserved.
       </footer>
     </div>
   </template>
   
   <script>
   export default {
+    name: 'AdminDashboard',
     data() {
       return {
         isDarkMode: true,
         users: [
-          { id: 1, name: "Maddy", email: "maddy@example.com" },
-          { id: 2, name: "Madhu", email: "madhu@example.com" },
-          { id: 3, name: "Madhavi", email: "madhavi@example.com" }
+          { id: 1, name: 'Maddy', email: 'maddy31@example.com' },
+          { id: 2, name: 'Madhu', email: 'madhu@example.com' },
+          { id: 3, name: 'Madhavi', email: 'madhavi31@example.com' }
+        ],
+        courses: [
+          { id: 1, name: 'Computational Thinking', enrolledStudents: 150 },
+          { id: 2, name: 'Statistics 2', enrolledStudents: 75 },
+          { id: 3, name: 'English 1', enrolledStudents: 100 }
         ]
-      };
+      }
     },
     methods: {
       addUser() {
-        const name = prompt("Enter user name:");
-        const email = prompt("Enter user email:");
-        if (name && email) {
-          const newUser = { id: this.users.length + 1, name, email };
-          this.users.push(newUser);
-        }
+        // addition logic
       },
       editUser(id) {
-        const user = this.users.find(u => u.id === id);
-        if (user) {
-          const newName = prompt("Enter new name:", user.name);
-          const newEmail = prompt("Enter new email:", user.email);
-          if (newName && newEmail) {
-            user.name = newName;
-            user.email = newEmail;
-          }
-        }
+        //  user editing logic
       },
       deleteUser(id) {
-        if (confirm("Are you sure you want to delete this user?")) {
-          this.users = this.users.filter(u => u.id !== id);
-        }
+        // user deletion logic
       },
-      generateReport() {
-        let report = "User Report:\n\n";
-        this.users.forEach(user => {
-          report += `Name: ${user.name}\nEmail: ${user.email}\n\n`;
-        });
-        alert(report);
+      addCourse() {
+        //  course addition logic
+      },
+      editCourse(id) {
+        // course editing logic
+      },
+      generateReport(type) {
+        //  report generation logic
+      },
+      openSettings(section) {
+        // Implement settings opening logic
       }
     }
-  };
+  }
   </script>
   
   <style scoped>
-  :root {
-    --primary-gradient: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
-    --bg-dark: #030303;
-    --bg-light: #ffffff;
-    --text-dark: rgba(255, 255, 255, 0.9);
-    --text-light: #1a1a1a;
-    --text-secondary-dark: rgba(255, 255, 255, 0.5);
-    --text-secondary-light: rgba(0, 0, 0, 0.6);
-    --border-dark: rgba(255, 255, 255, 0.1);
-    --border-light: rgba(0, 0, 0, 0.1);
-  }
-  
   .dashboard-container {
     min-height: 100vh;
     padding: 2rem;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background-color: var(--bg-dark);
-    color: var(--text-dark);
+  }
+  
+  .dashboard-content {
+    max-width: 1280px;
+    margin: 0 auto;
   }
   
   .dashboard-header {
     margin-bottom: 2rem;
-    animation: fadeIn 1s ease-out;
   }
   
   .dashboard-title {
-    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
     margin-bottom: 0.5rem;
   }
   
@@ -126,100 +174,87 @@
   
   .title-fancy {
     font-family: 'Pacifico', cursive;
-    background: var(--primary-gradient);
+    background: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
     -webkit-background-clip: text;
     color: transparent;
-    animation: shimmer 2s infinite linear;
   }
   
   .dashboard-subtitle {
+    color: var(--text-secondary-dark);
     font-size: 1.6rem;
+  }
+  
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  .stat-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    padding: 1.5rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0.5rem 0;
+  }
+  
+  .stat-trend {
+    font-size: 0.9rem;
     color: var(--text-secondary-dark);
   }
   
-  .user-management, .report-section {
+  .stat-trend.positive {
+    color: #10B981;
+  }
+  
+  .stat-trend.negative {
+    color: #EF4444;
+  }
+  
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .dashboard-card {
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(10px);
+    padding: 1.5rem;
     border-radius: 1rem;
-    padding: 2rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
   
-  .user-list {
-    list-style-type: none;
-    padding: 0;
-  }
-  
-  .user-item {
+  .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem;
     margin-bottom: 1rem;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 0.5rem;
-    transition: transform 0.3s ease;
   }
   
-  .user-item:hover {
-    transform: translateY(-2px);
-  }
-  
-  .user-info {
-    display: flex;
-    align-items: center;
-  }
-  
-  .user-avatar {
-    width: 40px;
-    height: 40px;
-    background: var(--primary-gradient);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    margin-right: 1rem;
-  }
-  
-  .user-details {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .user-name {
-    font-weight: bold;
-  }
-  
-  .user-email {
-    font-size: 0.9rem;
-    color: var(--text-secondary-dark);
-  }
-  
-  .btn {
+  .action-btn, .btn, .report-btn, .settings-btn {
     padding: 0.5rem 1rem;
     border: none;
-    border-radius: 0.25rem;
+    border-radius: 0.5rem;
     cursor: pointer;
     font-size: 0.9rem;
-    transition: opacity 0.3s ease;
+    transition: background-color 0.3s ease;
   }
   
-  .btn:hover {
-    opacity: 0.8;
-  }
-  
-  .btn-add, .btn-report {
-    background: var(--primary-gradient);
-    color: rgb(236, 228, 228);
-    font-weight: bold;
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
+  .action-btn {
+    background-color: rgb(99, 102, 241);
+    color: white;
   }
   
   .btn-edit {
-    background-color: rgb(99, 102, 241);
+    background-color: #3b82f6;
     color: white;
   }
   
@@ -228,51 +263,79 @@
     color: white;
   }
   
+  .report-btn, .settings-btn {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+  }
+  
+  .user-list, .course-list, .report-list, .settings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .user-item, .course-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 0.5rem;
+  }
+  
+  .user-info h4, .course-item h4 {
+    margin: 0;
+    color: var(--text-dark);
+  }
+  
+  .user-info p, .course-item p {
+    margin: 0.25rem 0 0;
+    color: var(--text-secondary-dark);
+  }
+  
   .dashboard-footer {
     text-align: center;
     padding: 1rem;
+    margin-top: 2rem;
     color: var(--text-secondary-dark);
-    border-top: 1px solid var(--border-dark);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
   }
   
-  /* Animations */
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+  /* Dark mode styles */
+  .dark-mode {
+    --text-dark: rgba(255, 255, 255, 0.9);
+    --text-secondary-dark: rgba(255, 255, 255, 0.5);
+    background-color: #030303;
+    color: var(--text-dark);
   }
   
-  @keyframes slideIn {
-    from { transform: translateX(-20px); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
+  /* Light mode styles */
+  .light-mode {
+    --text-dark: #1a1a1a;
+    --text-secondary-dark: rgba(0, 0, 0, 0.6);
+    background-color: #ffffff;
+    color: var(--text-dark);
   }
   
-  @keyframes shimmer {
-    0% { background-position: -200% center; }
-    100% { background-position: 200% center; }
-  }
-  
-  .animate-fade-in {
-    animation: fadeIn 1s ease-out;
-  }
-  
-  .animate-slide-in {
-    animation: slideIn 0.5s ease-out forwards;
-  }
-  
-  /* Responsive Design */
+  /* Responsive design */
   @media (max-width: 768px) {
     .dashboard-container {
       padding: 1rem;
     }
   
-    .user-item {
+    .dashboard-grid {
+      grid-template-columns: 1fr;
+    }
+  
+    .user-item, .course-item {
       flex-direction: column;
       align-items: flex-start;
     }
   
-    .user-actions {
-      margin-top: 1rem;
+    .user-actions, .course-actions {
+      margin-top: 0.5rem;
     }
   }
   </style>
-  F
+  

@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import SignUp from '../views/SignUp.vue'    // Add direct import
 import SignIn from '../views/SignIn.vue'    // Add direct import
 import DeadlineSection from '../views/DeadlineSection.vue'
+import AdminDashboard from '@/views/AdminDashboard.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -41,6 +42,11 @@ const router = createRouter({
       path: '/chatbot',
       name: 'chatbot',
       component: () => import('../views/ChatInterface.vue')
+    },
+    {                      
+      path: '/admindash',
+      name: 'admindash',
+      component: () => import('../views/AdminDashboard.vue')
     }
   ],
 })

@@ -17,67 +17,65 @@
         </div>
       </div>
 
-    <!-- Main Content -->
-    <div class="dashboard-content">
-      <!-- Give Feedback Section -->
-      <div class="dashboard-card add-feedback-card">
-        <h2 class="card-title">Add New Feedback</h2>
-        <form @submit.prevent="submitFeedback" class="add-feedback-form">
-          <div class="form-group">
-            <label for="category" class="form-label">Feedback Category:</label>
-            <select v-model="newfeedback.category" class="custom-input" id="category" required >
-              <option value="" disabled>Select a category</option>
-              <option value="instructor">Instructor</option>
-              <option value="course">Course</option>
-            </select>
-          </div>
-          <!-- Conditional Input for Instructor Name -->
-          <div class="form-group" v-if="newfeedback.category === 'instructor'">
-            <label for="instructorName" class="form-label">Instructor Name:</label>
-            <input v-model="newfeedback.instructorName" class="custom-input" type="text" id="instructorName" required />
-          </div>
-          <!-- Conditional Input for Course Name -->
-          <div class="form-group" v-if="newfeedback.category === 'course'">
-            <label for="courseName" class="form-label">Course Name:</label>
-            <input v-model="newfeedback.courseName" class="custom-input" type="text" id="courseName" required />
-          </div>
-
-          <div class="form-group">
-            <label for="newfeedback" class="form-label">Your Feedback:</label>
-            <textarea v-model="newfeedback.content" class="custom-input" id="feedback" rows="15" cols="50" placeholder="What's on your mind?" required></textarea>
-          </div>
-          <!-- File Attachment Input -->
-          <div class="form-group">
-              <label for="attachment" class="form-label">Attach a File:</label>
-              <input type="file" class="custom-input" id="attachment" @change="handleFileUpload" />
-          </div>
-
-          <button class="primary-btn" type="submit">Submit</button>
-        </form>
-      </div>
-      <!-- Feedback History Section -->
-      <div class="dashboard-card feedbacks-list-card">
-        <h2 class="card-title">My Feedbacks</h2>
-        <div v-if="feedbacks.length" class="feedback-list">
-          <div v-for="feedback in feedbacks" :key="feedback.id" class="feedback-item">
-            <div class="feedback-info">
-              <h4>Category: {{ feedback.category }} || Instructor Name: {{ feedback.instructorName }}</h4>
-              <h5>
-                <span class="created-on">Created On: {{ formatDate(feedback.date) }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                <span class="status">Status: {{ feedback.status }}</span>
-              </h5>
-              <p>{{ feedback.content }}</p>
-              <a v-if="feedback.attachment" :href="feedback.attachment" target="_blank" rel="noopener noreferrer" class="resource-link">
-                View Attachment
-              </a>
+      <!-- Main Content -->
+      <div class="dashboard-content">
+        <!-- Give Feedback Section -->
+        <div class="dashboard-card add-feedback-card">
+          <h2 class="card-title">Add New Feedback</h2>
+          <form @submit.prevent="submitFeedback" class="add-feedback-form">
+            <div class="form-group">
+              <label for="category" class="form-label">Feedback Category:</label>
+              <select v-model="newfeedback.category" class="custom-input" id="category" required >
+                <option value="" disabled>Select a category</option>
+                <option value="instructor">Instructor</option>
+                <option value="course">Course</option>
+              </select>
+            </div>
+            <!-- Conditional Input for Instructor Name -->
+            <div class="form-group" v-if="newfeedback.category === 'instructor'">
+              <label for="instructorName" class="form-label">Instructor Name:</label>
+              <input v-model="newfeedback.instructorName" class="custom-input" type="text" id="instructorName" required />
+            </div>
+            <!-- Conditional Input for Course Name -->
+            <div class="form-group" v-if="newfeedback.category === 'course'">
+              <label for="courseName" class="form-label">Course Name:</label>
+              <input v-model="newfeedback.courseName" class="custom-input" type="text" id="courseName" required />
             </div>
 
-          </div>
-        </div>
-        <p v-else class="no-feedbacks">You have not submitted any feedback yet. Add one on the left!</p>
-      </div>
-    </div>
+            <div class="form-group">
+              <label for="newfeedback" class="form-label">Your Feedback:</label>
+              <textarea v-model="newfeedback.content" class="custom-input" id="feedback" rows="15" cols="50" placeholder="What's on your mind?" required></textarea>
+            </div>
+            <!-- File Attachment Input -->
+            <div class="form-group">
+                <label for="attachment" class="form-label">Attach a File:</label>
+                <input type="file" class="custom-input" id="attachment" @change="handleFileUpload" />
+            </div>
 
+            <button class="primary-btn" type="submit">Submit</button>
+          </form>
+        </div>
+        <!-- Feedback History Section -->
+        <div class="dashboard-card feedbacks-list-card">
+          <h2 class="card-title">My Feedbacks</h2>
+          <div v-if="feedbacks.length" class="feedback-list">
+            <div v-for="feedback in feedbacks" :key="feedback.id" class="feedback-item">
+              <div class="feedback-info">
+                <h4>Category: {{ feedback.category }} || Instructor Name: {{ feedback.instructorName }}</h4>
+                <h5>
+                  <span class="created-on">Created On: {{ formatDate(feedback.date) }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                  <span class="status">Status: {{ feedback.status }}</span>
+                </h5>
+                <p>{{ feedback.content }}</p>
+                <a v-if="feedback.attachment" :href="feedback.attachment" target="_blank" rel="noopener noreferrer" class="resource-link">
+                  View Attachment
+                </a>
+              </div>
+            </div>
+          </div>
+          <p v-else class="no-feedbacks">You have not submitted any feedback yet. Add one on the left!</p>
+        </div>
+      </div>
 
     </div>
   </div>
@@ -183,7 +181,7 @@ export default {
   display: flex;
   align-items: center;
   margin-bottom: 2rem;
-  padding-left: 3.5rem; /* Add this line to align with the cards */
+  padding-left: 7.5rem; /* Add this line to align with the cards */
 }
 
 .back-arrow {
@@ -228,7 +226,7 @@ export default {
 .dashboard-content {
   display: flex;
   gap: 2rem;
-  max-width: 1200px;
+  max-width: 80%;
   margin: auto;
 }
 

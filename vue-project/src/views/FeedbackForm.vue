@@ -1,53 +1,82 @@
 <template>
   <div :class="isDarkMode ? 'dark-mode' : 'light-mode'">
-    <!-- Hero Section -->
-    <div class="hero">
-      <div class="content">
-        <h2 class="title-fancy">Anonymous Feedback</h2>
-        <form @submit.prevent="submitFeedback" class="feedback-form">
-          <div class="form-group">
-            <label for="category"><h3>Feedback Category:</h3></label>
-            <select v-model="feedback.category" id="category" required>
-              <option value="" disabled>Select a category</option>
-              <option value="instructor">Instructor</option>
-              <option value="course">Course</option>
-            </select>
-          </div>
+    <div class="feedbacks-container">
+      <!-- Header Section -->
+      <div class="header-content">
+        <!-- Back to Dashboard Button -->
+        <router-link to="/" class="back-arrow">
+          <span class="back-icon">&#8592;</span>
+        </router-link>
 
-          <!-- Conditional Input for Instructor Name -->
-          <div class="form-group" v-if="feedback.category === 'instructor'">
-            <label for="instructorName"><h3>Instructor Name:</h3></label>
-            <input
-              v-model="feedback.instructorName"
-              type="text"
-              id="instructorName"
-              required
-            />
-          </div>
-
-          <!-- Conditional Input for Course Name -->
-          <div class="form-group" v-if="feedback.category === 'course'">
-            <label for="courseName"><h3>Course Name:</h3></label>
-            <input
-              v-model="feedback.courseName"
-              type="text"
-              id="courseName"
-              required
-            />
-          </div>
-
-
-          <div class="form-group">
-            <label for="feedback"><h3>Your Feedback:</h3></label>
-            <textarea v-model="feedback.content" id="feedback" rows="15" cols="80" placeholder="What's on your mind?" required></textarea>
-          </div>
-          <button class="action-btn" type="submit">Submit</button>
-        </form>
-        <p class="auth-switch">
-          Changed your mind!
-          <router-link to="/dashboard" class="auth-link">Go Back to Dashboard</router-link>
-        </p>
+        <!-- Title and Subtitle -->
+        <div class="title-section">
+          <h1 class="hero-title">
+            Give Your <span class="accent-text">Feedback</span>
+          </h1>
+          <p class="subtitle">"We all need people who will give us feedback. That's how we improve." — Bill Gates</p>
+        </div>
       </div>
+
+      <!-- Main Content -->
+      <div class="dashboard-content">
+        <!-- Give Feedback Section -->
+        <div class="dashboard-card add-feedback-card">
+          <h2 class="card-title">Add New Feedback</h2>
+          <form @submit.prevent="submitFeedback" class="add-feedback-form">
+            <div class="form-group">
+              <label for="category" class="form-label">Feedback Category:</label>
+              <select v-model="newfeedback.category" class="custom-input" id="category" required >
+                <option value="" disabled>Select a category</option>
+                <option value="instructor">Instructor</option>
+                <option value="course">Course</option>
+              </select>
+            </div>
+            <!-- Conditional Input for Instructor Name -->
+            <div class="form-group" v-if="newfeedback.category === 'instructor'">
+              <label for="instructorName" class="form-label">Instructor Name:</label>
+              <input v-model="newfeedback.instructorName" class="custom-input" type="text" id="instructorName" required />
+            </div>
+            <!-- Conditional Input for Course Name -->
+            <div class="form-group" v-if="newfeedback.category === 'course'">
+              <label for="courseName" class="form-label">Course Name:</label>
+              <input v-model="newfeedback.courseName" class="custom-input" type="text" id="courseName" required />
+            </div>
+
+            <div class="form-group">
+              <label for="newfeedback" class="form-label">Your Feedback:</label>
+              <textarea v-model="newfeedback.content" class="custom-input" id="feedback" rows="15" cols="50" placeholder="What's on your mind?" required></textarea>
+            </div>
+            <!-- File Attachment Input -->
+            <div class="form-group">
+                <label for="attachment" class="form-label">Attach a File:</label>
+                <input type="file" class="custom-input" id="attachment" @change="handleFileUpload" />
+            </div>
+
+            <button class="primary-btn" type="submit">Submit</button>
+          </form>
+        </div>
+        <!-- Feedback History Section -->
+        <div class="dashboard-card feedbacks-list-card">
+          <h2 class="card-title">My Feedbacks</h2>
+          <div v-if="feedbacks.length" class="feedback-list">
+            <div v-for="feedback in feedbacks" :key="feedback.id" class="feedback-item">
+              <div class="feedback-info">
+                <h4>Category: {{ feedback.category }} || Instructor Name: {{ feedback.instructorName }}</h4>
+                <h5>
+                  <span class="created-on">Created On: {{ formatDate(feedback.date) }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                  <span class="status">Status: {{ feedback.status }}</span>
+                </h5>
+                <p>{{ feedback.content }}</p>
+                <a v-if="feedback.attachment" :href="feedback.attachment" target="_blank" rel="noopener noreferrer" class="resource-link">
+                  View Attachment
+                </a>
+              </div>
+            </div>
+          </div>
+          <p v-else class="no-feedbacks">You have not submitted any feedback yet. Add one on the left!</p>
+        </div>
+      </div>
+
     </div>
   </div>
 </template>
@@ -58,12 +87,14 @@ export default {
     return {
       isDarkMode: true,
       isMobileMenuOpen: false,
-      feedback: {
+      newfeedback: {
         category: '',
         content: '',
         instructorName: '',
-        courseName: ''
-      }
+        courseName: '',
+        attachment: null, // To store the selected file
+      },
+      feedbacks: [{category: 'Instructor', content: 'Rahul is a great Instructor. He teaches us really well. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', instructorName: 'Rahul', attachment: 'xyz.pdf', date: '10-01-2025', status: 'open'}],
     };
   },
   methods: {
@@ -73,135 +104,252 @@ export default {
     closeMobileMenu() {
       this.isMobileMenuOpen = false;
     },
+    handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        this.newFeedback.attachment = file;
+      }
+    },
     async submitFeedback() {
       try {
-        // Prepare the feedback data based on the selected category
-        const feedbackData = {
-          category: this.feedback.category,
-          content: this.feedback.content
-        };
-
-        if (this.feedback.category === 'instructor') {
-          feedbackData.instructorName = this.feedback.instructorName;
-        } else if (this.feedback.category === 'course') {
-          feedbackData.courseName = this.feedback.courseName;
+        const formData = new FormData();
+        formData.append('category', this.newFeedback.category);
+        formData.append('content', this.newFeedback.content);
+        if (this.newFeedback.category === 'instructor') {
+          formData.append('instructorName', this.newFeedback.instructorName);
+        } else if (this.newFeedback.category === 'course') {
+          formData.append('courseName', this.newFeedback.courseName);
+        }
+        if (this.newFeedback.attachment) {
+          formData.append('attachment', this.newFeedback.attachment);
         }
 
-        // Send the feedback to the server
         const response = await fetch('/api/feedback', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(feedbackData)
+          body: formData,
         });
 
         if (response.ok) {
-          // Handle successful submission (e.g., show a thank you message)
           alert('Thank you for your feedback!');
           // Reset the form
-          this.feedback.category = '';
-          this.feedback.content = '';
-          this.feedback.instructorName = '';
-          this.feedback.courseName = '';
+          this.newFeedback = {
+            category: '',
+            content: '',
+            instructorName: '',
+            courseName: '',
+            attachment: null,
+          };
+          // Optionally, refresh the feedback list
+          this.fetchFeedbacks();
         } else {
-          // Handle server errors
           alert('There was an issue submitting your feedback. Please try again later.');
         }
       } catch (error) {
-        // Handle network errors
         alert('There was an issue submitting your feedback. Please check your internet connection and try again.');
       }
-    }
-  }
+    },
+    async fetchFeedbacks() {
+      // Fetch the list of feedbacks from the server
+      const response = await fetch('/api/feedbacks');
+      if (response.ok) {
+        this.feedbacks = await response.json();
+      }
+    },
+    formatDate(date) {
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      return new Date(date).toLocaleDateString(undefined, options);
+    },
+  },
+  mounted() {
+    this.fetchFeedbacks();
+  },
 };
 </script>
 
 <style scoped>
 /* Feedback Form Styles */
-.feedback-form {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  backdrop-filter: blur(10px);
-  z-index: 10;
+.feedbacks-container {
+  min-height: 100vh;
+  padding: 2rem;
+  background-color: #030303;
+  background-size: cover;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: rgba(255, 255, 255, 0.9);
 }
 
-.feedback-form .form-group {
+.header-content {
   display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-left: 7.5rem; /* Add this line to align with the cards */
 }
 
-.feedback-form label {
+.back-arrow {
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
   display: flex;
-  margin-bottom: 5px;
-  font-size: 20px;
+  align-items: center;
+  font-size: 2.5rem;
+  margin-right: 1rem;
+  transition: color 0.3s ease;
 }
 
-.feedback-form select,
-.feedback-form input,
-.feedback-form textarea {
-  width: 100%;
+.back-arrow:hover {
+  color: rgba(255, 255, 255, 1);
+}
+
+.back-icon {
+  margin-right: 0;
+}
+
+.title-section {
+  flex-grow: 1;
+}
+
+.hero-title {
+  font-size: clamp(2rem, 4vw, 3rem);
+  margin-bottom: 0.5rem;
+}
+
+.accent-text {
+  font-family: 'Pacifico', cursive;
+  background-image: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.subtitle {
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.dashboard-content {
+  display: flex;
+  gap: 2rem;
+  max-width: 80%;
+  margin: auto;
+}
+
+.dashboard-card {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
-  padding: 1.5rem;
   border-radius: 1rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  font-weight: bold;
-  font-size: 1.2rem;
-  color: white;
+  padding: 2rem;
+  flex: 1;
 }
-.title-fancy {
-    font-family: 'Pacifico', cursive;
-    background: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
-    -webkit-background-clip: text;
-    color: transparent;
-    font-size: clamp(1.5rem, 4vw, 2.5rem);
-    margin-bottom: 0.5rem;
-  }
 
-.action-btn {
-  width: 100%;
-  margin-top: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
-  border: none;
+.card-title {
+  font-size: clamp(1.25rem, 3vw, 1.5rem);
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 1.5rem;
+}
+
+.add-feedback-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-label {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 0.5rem;
+}
+
+.custom-input, .status-select {
+  padding: 0.75rem;
   border-radius: 0.5rem;
-  color: white;
-  cursor: pointer;
-  font-size: 1.2rem;
-}
-.auth-switch {
-  text-align: center;
-  margin-top: 1.5rem;
-  font-size: 1.2rem;
-  color: var(--text-secondary-dark);
+  border: none;
+  background-color: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 1rem;
 }
 
-.auth-link {
+.custom-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.primary-btn {
+  background-image: linear-gradient(to right, rgb(99,102,241), rgb(168,85,247));
+  color: white;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: opacity 0.3s ease;
+}
+
+.primary-btn:hover {
+  opacity: 0.9;
+}
+
+.feedback-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.feedback-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0.5rem;
+}
+
+.feedback-info h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+}
+
+.feedback-info p {
+  margin: 1rem 0 1rem 0;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.resource-link {
   color: rgb(99, 102, 241);
   text-decoration: none;
-  font-weight: 800;
+  font-size: 0.9rem;
 }
 
-.auth-link:hover {
-  text-decoration: underline;
+.feedback-date {
+  font-weight: bold;
 }
 
-
-.light-mode .feedback-form {
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+.feedback-status {
+  min-width: 120px;
+  text-align: right;
 }
 
-.light-mode .feedback-form select,
-.light-mode .feedback-form textarea {
-  background: var(--bg-dark);
-  color: var(--text-dark);
+.no-feedbacks {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+@media (max-width: 768px) {
+  .feedbacks-container {
+    padding: 1rem;
+  }
+
+  .dashboard-content {
+    flex-direction: column;
+  }
+
+  .dashboard-card {
+    padding: 1.5rem;
+  }
+
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .custom-file-input {
+    display: none;
+  }
+
 }
 </style>

@@ -1,29 +1,30 @@
-# Node.js dependencies
-node_modules/
-npm-debug.log*
-yarn.lock
-package-lock.json
-pnpm-lock.yaml
-
-# Environment variables
-.env/
-.env
-
-# Logs & temp files
-logs/
+# Logs
+logs
 *.log
-yarn-error.log
-.pnpm-debug.log
-.npmrc
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# Build output
-dist/
-build/
-.cache/
-.vite/
-.vscode/
-
-# OS & Editor-specific files
-.DS_Store/
+node_modules
 .DS_Store
+dist
+dist-ssr
+coverage
+*.local
 
+/cypress/videos/
+/cypress/screenshots/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+*.tsbuildinfo

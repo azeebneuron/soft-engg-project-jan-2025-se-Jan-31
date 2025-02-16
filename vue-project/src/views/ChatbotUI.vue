@@ -17,8 +17,8 @@
             {{ message.type === 'bot' ? '🤖' : '👤' }}
           </div>
           <div class="message-content">
-            <div class="message-text" v-html="formatMessage(message.text)"></div>
-            <div class="message-timestamp">{{ message.timestamp }}</div>
+            <!-- <div class="message-text" v-html="formatMessage(message.text)"></div> -->
+            <!-- <div class="message-timestamp">{{ message.timestamp }}</div> -->
           </div>
         </div>
         <div v-if="isTyping" class="message bot typing">
@@ -74,7 +74,7 @@
             id: 1,
             type: 'bot',
             text: 'Hello! I\'m your AI Learning Assistant. How can I help you today?',
-            timestamp: this.getCurrentTime()
+            // timestamp: this.getCurrentTime()
           }
         ],
         userInput: '',
@@ -90,7 +90,7 @@
           id: this.messages.length + 1,
           type: 'user',
           text: this.userInput,
-          timestamp: this.getCurrentTime()
+          // timestamp: this.getCurrentTime()
         })
   
         // Clear input and show typing indicator
@@ -105,7 +105,7 @@
             id: this.messages.length + 1,
             type: 'bot',
             text: `I understand your question about "${userMessage}". Let me help you with that...`,
-            timestamp: this.getCurrentTime()
+            // timestamp: this.getCurrentTime()
           })
           this.scrollToBottom()
         }, 1500)
@@ -114,11 +114,11 @@
           this.scrollToBottom()
         })
       },
-      getCurrentTime() {
-        return new Date().toLocaleTimeString('en-US', { 
-          hour: '2-digit', 
-          minute: '2-digit'
-        })
+      // getCurrentTime() {
+      //   return new Date().toLocaleTimeString('en-US', { 
+      //     hour: '2-digit', 
+      //     minute: '2-digit'
+      //   })
       },
       scrollToBottom() {
         const container = this.$refs.messagesContainer
@@ -141,7 +141,7 @@
           id: 1,
           type: 'bot',
           text: 'Chat cleared. How can I help you?',
-          timestamp: this.getCurrentTime()
+          // timestamp: this.getCurrentTime()
         }]
       }
     },
@@ -227,11 +227,11 @@
     background: rgba(99, 102, 241, 0.2);
   }
   
-  .message-timestamp {
+  /* .message-timestamp {
     font-size: 0.8rem;
     color: var(--text-secondary-dark);
     margin-top: 0.5rem;
-  }
+  } */
   
   .typing-indicator {
     display: flex;

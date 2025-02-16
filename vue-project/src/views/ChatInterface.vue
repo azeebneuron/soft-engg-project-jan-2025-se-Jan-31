@@ -51,7 +51,7 @@
              :class="['message', message.type]">
           <div class="message-content">
             <div class="message-text">{{ message.text }}</div>
-            <div class="message-time">{{ message.timestamp }}</div>
+            <!-- <div class="message-time">{{ message.timestamp }}</div> -->
           </div>
         </div>
       </div>
@@ -181,7 +181,7 @@ export default {
 }
 
 .sidebar {
-  width: 280px;
+  width: 320px;
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
   border-right: 1px solid rgba(255, 255, 255, 0.1);

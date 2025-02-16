@@ -47,7 +47,13 @@ const router = createRouter({
       path: '/admindash',
       name: 'admindash',
       component: () => import('../views/AdminDashboard.vue')
-    }  
+    },
+    {                      
+      path: '/instructor',
+      name: 'instructor',
+      component: () => import('../views/InstructorDashboard.vue')
+    },
+    
   ],
 })
 

@@ -32,16 +32,18 @@
   
       <!-- Add Resource Modal -->
       <div v-if="showAddResourceModal" class="modal">
-        <div class="modal-content">
-          <h3>Add Resource for {{ selectedCourse.name }}</h3>
-          <input v-model="newResource.title" placeholder="Resource Title" class="input-field">
-          <input v-model="newResource.link" placeholder="Resource Link" class="input-field">
-          <div class="modal-actions">
-            <button @click="saveResource" class="btn btn-primary">Save</button>
-            <button @click="closeAddResourceModal" class="btn btn-secondary">Cancel</button>
-          </div>
-        </div>
-      </div>
+  <div class="modal-content">
+    <h3>Add Resource for {{ selectedCourse.name }}</h3>
+    <br>
+    <input v-model="newResource.title" placeholder="Resource Title" class="input-field">
+    <textarea v-model="newResource.link" placeholder="Resource" class="input-field"></textarea>
+    <div class="modal-actions">
+      <button @click="saveResource" class="btn btn-primary">Save</button>
+      <button @click="closeAddResourceModal" class="btn btn-secondary">Cancel</button>
+    </div>
+  </div>
+</div>
+
   
       <!-- View Resources Modal -->
       <div v-if="showViewResourcesModal" class="modal">
@@ -60,9 +62,7 @@
         </div>
       </div>
   
-      <footer class="dashboard-footer">
-        © 2025 Instructor Dashboard. All rights reserved.
-      </footer>
+      
     </div>
   </template>
   
@@ -237,29 +237,39 @@
   }
   
   .modal-content {
-    background: var(--bg-dark);
-    padding: 2rem;
-    border-radius: 1rem;
-    width: 90%;
-    max-width: 500px;
-  }
-  
-  .input-field {
-    width: 100%;
-    padding: 0.5rem;
-    margin-bottom: 1rem;
-    border-radius: 0.25rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--text-dark);
-  }
-  
-  .modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.5rem;
-    margin-top: 1rem;
-  }
+  background: var(--bg-dark);
+  padding: 2rem;
+  border-radius: 1rem;
+  width: 90%;
+  height: 70%;
+  max-width: 800px;
+  max-height: 600px;
+  display: flex;
+  flex-direction: column;
+}
+
+.input-field {
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  border-radius: 0.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-dark);
+}
+
+.input-field[placeholder="Resource"] {
+  height: 150px;
+  resize: vertical;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
   
   .resource-list {
     margin-top: 1rem;

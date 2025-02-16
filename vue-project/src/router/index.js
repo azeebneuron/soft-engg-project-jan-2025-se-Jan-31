@@ -47,7 +47,7 @@ const router = createRouter({
       path: '/admindash',
       name: 'admindash',
       component: () => import('../views/AdminDashboard.vue')
-    }
+    }  
   ],
 })
 

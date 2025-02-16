@@ -4,6 +4,7 @@ import SignUp from '../views/SignUp.vue'    // Add direct import
 import SignIn from '../views/SignIn.vue'    // Add direct import
 import DeadlineSection from '../views/DeadlineSection.vue'
 import AdminDashboard from '@/views/AdminDashboard.vue'
+import CourseMan from '@/views/CourseMan.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -38,6 +39,11 @@ const router = createRouter({
       name: 'feedback',
       component: () => import('../views/FeedbackForm.vue')
     },
+    {
+      path: '/instfeedback',
+      name: 'instfeedback',
+      component: () => import('../views/InstructorFeedback.vue')
+    },
     {                      
       path: '/chatbot',
       name: 'chatbot',
@@ -47,6 +53,16 @@ const router = createRouter({
       path: '/admindash',
       name: 'admindash',
       component: () => import('../views/AdminDashboard.vue')
+    },
+    {                      
+      path: '/instructor',
+      name: 'instructor',
+      component: () => import('../views/InstructorDashboard.vue')
+    },
+    {
+      path: '/courseman',
+      name: 'courseman',
+      component: () => import('../views/CourseMan.vue')
     }
   ],
 })

@@ -4,6 +4,7 @@ import SignUp from '../views/SignUp.vue'    // Add direct import
 import SignIn from '../views/SignIn.vue'    // Add direct import
 import DeadlineSection from '../views/DeadlineSection.vue'
 import AdminDashboard from '@/views/AdminDashboard.vue'
+import CourseMan from '@/views/CourseMan.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -53,7 +54,11 @@ const router = createRouter({
       name: 'instructor',
       component: () => import('../views/InstructorDashboard.vue')
     },
-    
+    {
+      path: '/courseman',
+      name: 'courseman',
+      component: () => import('../views/CourseMan.vue')
+    }
   ],
 })
 

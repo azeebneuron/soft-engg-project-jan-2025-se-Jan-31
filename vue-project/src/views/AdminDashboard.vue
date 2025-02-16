@@ -28,10 +28,11 @@
             <p class="stat-trend positive">↑ 12% this week</p>
           </div>
           <div class="stat-card">
-            <h3>Generate Report</h3>
-            <br>
-            <button class="btn btn-primary" @click="generateReport">Generate User Report</button>
-          </div>
+  <h3>Generate Report</h3>
+  <br>
+  <button class="btn btn-primary gradient-btn" @click="generateReport">Generate User Report</button>
+</div>
+
         </div>
   
         <!-- Main Dashboard Grid -->
@@ -48,7 +49,8 @@
                   <p>{{ user.email }}</p>
                 </div>
                 <div class="user-actions">
-                  <button class="btn btn-edit" @click="editUser(user.id)">Edit</button>
+                  <button class="btn btn-edit gradient-btn" @click="editUser(user.id)">Edit</button>
+
                   <button class="btn btn-delete" @click="deleteUser(user.id)">Delete</button>
                 </div>
               </div>
@@ -64,7 +66,8 @@
               <div v-for="course in courses" :key="course.id" class="course-item">
                 <h4>{{ course.name }}</h4>
                 <p>Enrolled: {{ course.enrolledStudents }}</p>
-                <button class="btn btn-edit" @click="editCourse(course.id)">Edit</button>
+                <button class="btn btn-edit gradient-btn" @click="editCourse(course.id)">Edit</button>
+
               </div>
             </div>
           </div>
@@ -215,11 +218,21 @@
   font-size: 0.9rem;
   transition: background-color 0.3s ease;
 }
+.gradient-btn {
+  background: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
+  color: white;
+  transition: opacity 0.3s ease;
+}
+
+.gradient-btn:hover {
+  opacity: 0.8;
+}
 
 .btn-edit {
-  background-color: #3b82f6;
+  background: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
   color: white;
 }
+
 
 .btn-delete {
   background-color: #ef4444;

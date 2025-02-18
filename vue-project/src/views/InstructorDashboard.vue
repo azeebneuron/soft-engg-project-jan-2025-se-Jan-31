@@ -4,8 +4,8 @@
       <!-- Welcome Section -->
       <header class="dashboard-header">
         <h1 class="dashboard-title">
-          <span class="title-regular">Welcome,</span>
-          <span class="title-fancy">Dr. {{ instructorName }}</span>
+          <span class="title-regular">Welcome back,</span>
+          <span class="title-fancy">Mr. {{ instructorName }}</span>
         </h1>
         <p class="dashboard-subtitle">Teaching Excellence Dashboard</p>
       </header>
@@ -14,31 +14,31 @@
       <div class="stats-grid">
         <div class="stat-card">
           <h3>Active Courses</h3>
-          <p class="stat-value">4</p>
+          <p class="stat-value">{{ activeCourses }}</p>
           <p class="stat-trend">Current Semester</p>
         </div>
         <div class="stat-card">
           <h3>Total Students</h3>
-          <p class="stat-value">125</p>
+          <p class="stat-value">{{ totalStudents }}</p>
           <p class="stat-trend">Across all courses</p>
         </div>
         <div class="stat-card">
-          <h3>Pending Grades</h3>
-          <p class="stat-value">28</p>
-          <p class="stat-trend">Need review</p>
+          <h3>Pending Tasks</h3>
+          <p class="stat-value">{{ pendingTasks }}</p>
+          <p class="stat-trend">Need attention</p>
         </div>
         <div class="stat-card">
           <h3>Average Rating</h3>
-          <p class="stat-value">4.8/5</p>
+          <p class="stat-value">{{ averageRating }}/5</p>
           <p class="stat-trend positive">↑ 0.2 from last semester</p>
         </div>
       </div>
 
-      <!-- AI Summary Section -->
-      <div class="dashboard-card ai-summary-card">
+      <!-- AI Analytics Section -->
+      <div class="dashboard-card ai-analytics-card">
         <div class="card-header">
-          <h2>AI Course Analytics</h2>
-          <button class="action-btn" @click="viewDetailedAnalytics">View Details</button>
+          <h2>AI Teaching Analytics</h2>
+          <button class="action-btn" @click="navigateToAnalytics">View Details</button>
         </div>
         <div class="ai-features">
           <div v-for="feature in aiFeatures" :key="feature.id" class="feature-item">
@@ -53,24 +53,29 @@
 
       <!-- Main Dashboard Grid -->
       <div class="dashboard-grid">
-      <!-- Course Management -->
-      <!-- Course Management (Improved Design) -->
-      <div class="dashboard-card course-card">
-        <div class="card-header">
-          <h2>Course Management</h2>
+        <!-- Course Management -->
+        <div class="dashboard-card courses-card">
+          <div class="card-header">
+            <h2>Active Courses</h2>
+            <button class="view-all-btn" @click="navigateToCourses">Manage All</button>
+          </div>
+          <div class="course-list">
+            <div v-for="course in courses" :key="course.id" class="course-item">
+              <div class="course-info">
+                <h4>{{ course.name }}</h4>
+                <p>{{ course.code }} - {{ course.students }} students</p>
+              </div>
+              <div class="course-actions">
+                <button class="action-btn-small" @click="viewCourse(course.id)">View</button>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="course-content">
-          <div class="course-icon">📚</div>
-          <p>Manage and update course materials, track progress, and organize lessons.</p>
-          <button class="action-btn" @click="navigateToCourses">Manage Courses</button>
-        </div>
-      </div>
-
 
         <!-- Student Feedback -->
         <div class="dashboard-card feedback-card">
           <div class="card-header">
-            <h2>Recent Student Feedback</h2>
+            <h2>Recent Feedback</h2>
             <button class="view-all-btn" @click="viewAllFeedback">View All</button>
           </div>
           <div class="feedback-list">
@@ -84,6 +89,23 @@
             </div>
           </div>
         </div>
+
+        <!-- Upcoming Classes -->
+        <!-- <div class="dashboard-card classes-card">
+          <div class="card-header">
+            <h2>Today's Schedule</h2>
+            <button class="view-all-btn" @click="viewFullSchedule">Full Schedule</button>
+          </div>
+          <div class="class-list">
+            <div v-for="class_ in upcomingClasses" :key="class_.id" class="class-item">
+              <div class="class-time">{{ class_.time }}</div>
+              <div class="class-info">
+                <h4>{{ class_.course }}</h4>
+                <p>{{ class_.room }}</p>
+              </div>
+            </div>
+          </div>
+        </div> -->
 
         <!-- Quick Actions -->
         <div class="dashboard-card quick-actions-card">
@@ -115,31 +137,35 @@ export default {
   data() {
     return {
       isDarkMode: true,
-      instructorName: 'Smith',
+      instructorName: 'Instructor',
+      activeCourses: 4,
+      totalStudents: 125,
+      pendingTasks: 28,
+      averageRating: 4.8,
       aiFeatures: [
         {
           id: 1,
           icon: '📊',
-          title: 'Performance Insights',
-          description: 'AI-driven analysis of student performance trends'
+          title: 'Performance Analytics',
+          description: 'Track student progress and identify learning gaps'
         },
         {
           id: 2,
           icon: '🎯',
           title: 'Engagement Metrics',
-          description: 'Track student participation and engagement levels'
+          description: 'Monitor class participation and interaction levels'
         },
         {
           id: 3,
           icon: '📈',
-          title: 'Progress Tracking',
-          description: 'Monitor course completion and achievement rates'
+          title: 'Learning Patterns',
+          description: 'Analyze student learning behaviors and trends'
         },
         {
           id: 4,
           icon: '🤖',
-          title: 'Predictive Analytics',
-          description: 'Early warning system for at-risk students'
+          title: 'Smart Insights',
+          description: 'AI-powered recommendations for course improvement'
         }
       ],
       courses: [
@@ -179,14 +205,20 @@ export default {
     }
   },
   methods: {
-    viewDetailedAnalytics() {
+    navigateToAnalytics() {
       this.$router.push('/analytics');
     },
     navigateToCourses() {
       this.$router.push('/courses');
     },
+    viewCourse(courseId) {
+      this.$router.push(`/course/${courseId}`);
+    },
     viewAllFeedback() {
       this.$router.push('/feedback');
+    },
+    viewFullSchedule() {
+      this.$router.push('/schedule');
     },
     handleQuickAction(actionId) {
       // Handle quick actions
@@ -195,7 +227,6 @@ export default {
   }
 }
 </script>
-
 <style scoped>
 .dashboard-container {
   min-height: 100vh;
@@ -268,38 +299,8 @@ export default {
   color: #10B981;
 }
 
-/* Dashboard Grid */
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 1.5rem;
-}
-
-.dashboard-card {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  padding: 1.5rem;
-  border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.view-all-btn {
-  color: rgb(99, 102, 241);
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-
-/* AI Summary Card */
-.ai-summary-card {
+/* AI Analytics Card */
+.ai-analytics-card {
   grid-column: 1 / -1;
   margin-bottom: 1.5rem;
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
@@ -342,41 +343,29 @@ export default {
   color: var(--text-secondary-dark);
 }
 
-.course-placeholder {
+/* Dashboard Grid */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1.5rem;
+}
+
+.dashboard-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  padding: 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-header {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-  height: 200px; /* Adjust height as needed */
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 0.5rem;
-  border: 1px dashed rgba(255, 255, 255, 0.1);
+  margin-bottom: 1rem;
 }
 
-.placeholder-content {
-  text-align: center;
-}
-
-.placeholder-icon {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-}
-
-.placeholder-text {
-  color: var(--text-secondary-dark);
-  font-size: 0.9rem;
-}
-
-/* Light Mode Adjustments */
-.light-mode .course-placeholder {
-  background: rgba(0, 0, 0, 0.03);
-  border-color: rgba(0, 0, 0, 0.1);
-}
-
-.light-mode .placeholder-text {
-  color: var(--text-secondary-light);
-}
-
-/* Course Management Card */
+/* Course Management */
 .course-list {
   display: flex;
   flex-direction: column;
@@ -387,27 +376,22 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem;
+  padding: 1rem;
   background: rgba(255, 255, 255, 0.03);
   border-radius: 0.5rem;
 }
 
-.course-actions {
-  display: flex;
-  gap: 0.5rem;
+.course-info h4 {
+  margin: 0 0 0.5rem 0;
 }
 
-.action-btn-small {
-  padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: none;
-  border-radius: 0.5rem;
-  color: var(--text-dark);
-  cursor: pointer;
+.course-info p {
+  margin: 0;
   font-size: 0.9rem;
+  color: var(--text-secondary-dark);
 }
 
-/* Student Feedback Card */
+/* Feedback Section */
 .feedback-list {
   display: flex;
   flex-direction: column;
@@ -441,7 +425,7 @@ export default {
   color: var(--text-secondary-dark);
 }
 
-/* Upcoming Classes Card */
+/* Upcoming Classes */
 .class-list {
   display: flex;
   flex-direction: column;
@@ -452,7 +436,7 @@ export default {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 0.75rem;
+  padding: 1rem;
   background: rgba(255, 255, 255, 0.03);
   border-radius: 0.5rem;
 }
@@ -460,9 +444,10 @@ export default {
 .class-time {
   font-weight: bold;
   color: rgb(99, 102, 241);
+  min-width: 80px;
 }
 
-/* Quick Actions Card */
+/* Quick Actions */
 .actions-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -496,6 +481,35 @@ export default {
   font-size: 0.9rem;
 }
 
+/* Buttons */
+.action-btn {
+  padding: 0.5rem 1rem;
+  background: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
+  border: none;
+  border-radius: 0.5rem;
+  color: white;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.view-all-btn {
+  color: rgb(99, 102, 241);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.action-btn-small {
+  padding: 0.5rem 1rem;
+  background: rgba(99, 102, 241, 0.2);
+  border: none;
+  border-radius: 0.5rem;
+  color: rgb(99, 102, 241);
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
 /* Footer */
 .dashboard-footer {
   text-align: center;
@@ -512,18 +526,16 @@ export default {
 }
 
 .light-mode .dashboard-card,
-.light-mode .stat-card,
-.light-mode .course-item,
-.light-mode .feedback-item,
-.light-mode .class-item,
-.light-mode .quick-action-btn {
+.light-mode .stat-card {
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.light-mode .dashboard-footer {
-  color: var(--text-secondary-light);
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+.light-mode .course-item,
+.light-mode .feedback-item,
+.light-mode .class-item,
+.light-mode .quick-action-btn {
+  background: rgba(0, 0, 0, 0.03);
 }
 
 .light-mode .title-regular {
@@ -533,8 +545,14 @@ export default {
 .light-mode .dashboard-subtitle,
 .light-mode .stat-trend,
 .light-mode .feature-info p,
+.light-mode .course-info p,
 .light-mode .feedback-date {
   color: var(--text-secondary-light);
+}
+
+.light-mode .dashboard-footer {
+  color: var(--text-secondary-light);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 /* Responsive Design */
@@ -545,6 +563,10 @@ export default {
 
   .dashboard-grid {
     grid-template-columns: 1fr;
+  }
+
+  .actions-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 </style>

@@ -57,7 +57,7 @@
         <div class="dashboard-card deadlines-card">
           <div class="card-header">
             <h2>Upcoming Deadlines</h2>
-            <button class="view-all-btn">View All</button>
+            <button class="view-all-btn" onclick="window.location.href='/deadline'">View All</button>
           </div>
           <div class="deadline-list">
             <div v-for="deadline in upcomingDeadlines" :key="deadline.id" class="deadline-item">
@@ -76,7 +76,7 @@
         <div class="dashboard-card progress-card">
           <div class="card-header">
             <h2>Course Progress</h2>
-            <button class="view-all-btn">Details</button>
+            <button class="view-all-btn" onclick="window.location.href='/studentresources'">Details</button>
           </div>
           <div class="progress-list">
             <div v-for="course in courses" :key="course.id" class="progress-item">

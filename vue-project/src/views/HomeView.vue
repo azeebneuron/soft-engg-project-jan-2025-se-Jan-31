@@ -15,7 +15,7 @@
       <div class="nav-links" :class="{ active: isMobileMenuOpen }">
         <a href="#" class="nav-link" @click="closeMobileMenu">Home</a>
         <a href="#" class="nav-link" @click="closeMobileMenu">Features</a>
-        <a href="#" class="nav-link" @click="closeMobileMenu">Get Started</a>
+        <a href="/signup" class="nav-link" @click="closeMobileMenu">Get Started</a>
       </div>
     </nav>
 

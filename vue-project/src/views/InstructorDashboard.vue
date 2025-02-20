@@ -38,7 +38,7 @@
       <div class="dashboard-card ai-analytics-card">
         <div class="card-header">
           <h2>AI Teaching Analytics</h2>
-          <button class="action-btn" @click="navigateToAnalytics">View Details</button>
+          <button class="action-btn" onclick="window.location.href='/aisummary'">View Details</button>
         </div>
         <div class="ai-features">
           <div v-for="feature in aiFeatures" :key="feature.id" class="feature-item">

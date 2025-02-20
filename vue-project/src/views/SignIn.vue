@@ -83,7 +83,7 @@ export default {
       this.$router.push('/dashboard'); 
     },
     goToInfluencerDashboard() {
-      this.$router.push('/influencer');
+      this.$router.push('/instructor');
     },
     goToAdminDashboard() {
       this.$router.push('/admindash'); 

@@ -209,13 +209,13 @@ export default {
       this.$router.push('/analytics');
     },
     navigateToCourses() {
-      this.$router.push('/courses');
+      this.$router.push('/courseman');
     },
     viewCourse(courseId) {
       this.$router.push(`/course/${courseId}`);
     },
     viewAllFeedback() {
-      this.$router.push('/feedback');
+      this.$router.push('/instfeedback');
     },
     viewFullSchedule() {
       this.$router.push('/schedule');

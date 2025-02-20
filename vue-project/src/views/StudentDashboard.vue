@@ -76,7 +76,7 @@
         <div class="dashboard-card progress-card">
           <div class="card-header">
             <h2>Course Progress</h2>
-            <button class="view-all-btn">Details</button>
+            <button class="view-all-btn" onclick="window.location.href='/studentresources'">Details</button>
           </div>
           <div class="progress-list">
             <div v-for="course in courses" :key="course.id" class="progress-item">

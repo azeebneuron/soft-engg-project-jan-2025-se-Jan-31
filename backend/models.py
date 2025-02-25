@@ -128,7 +128,6 @@ class feedback(db.Model):
     __tablename__ = 'feedback'
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('user.id'))
-    category = Column(String(255))
     instructor_id = Column(Integer, ForeignKey('user.id'), nullable=True)
     course_id = Column(Integer, ForeignKey('courses.id'), nullable=True)
     content = Column(String(255))

@@ -43,6 +43,10 @@ api_handler.add_resource(ActivateUser, "/admin/user/activate")
 api_handler.add_resource(ListUsers, "/admin/user/list")
 
 
+from routes.student_API.feedback import FeedbackAPI
+api_handler.add_resource(FeedbackAPI, "/student/feedback")
+
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=3000)

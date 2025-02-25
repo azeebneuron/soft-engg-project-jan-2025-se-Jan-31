@@ -33,6 +33,10 @@ from routes.auth import Signup, Signin
 api_handler.add_resource(Signup, "/signup")
 api_handler.add_resource(Signin, "/signin")
 
+from routes.student_API.deadline import DeadlineAPICreate, DeadlineAPIGet
+api_handler.add_resource(DeadlineAPICreate, "/student/deadline")
+api_handler.add_resource(DeadlineAPIGet, "/student/deadline")
+
 
 
 if __name__ == "__main__":

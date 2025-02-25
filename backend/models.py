@@ -104,17 +104,22 @@ class course_documents(db.Model):
             'document_url': self.document_url
         }
 
+
+# In the deadline model i have added courese as string but we need to update it as course.id as integer 
+# As of now we dont have any course table so i am doing this 
 class deadlines(db.Model):
     __tablename__ = 'deadlines'
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('user.id'))
+    course = Column(String(255))
     deadline = Column(DateTime())
-    description = Column(String(255))
+    title = Column(String(255))
 
     def serialize(self):
         return {
             'id': self.id,
             'user_id': self.user_id,
+            'course': self.course,
             'deadline': self.deadline,
             'description': self.description
         }

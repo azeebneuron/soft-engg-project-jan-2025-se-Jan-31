@@ -6,4 +6,4 @@
 
 - added the deadline post and get Api inside routes/student_API/deadline.py  - inside this user can create a desline and also can view all the deadline created user
 
-
+- added the admin user_managment.py for admin so that admin can activate/deactivate and list all the user , i have 

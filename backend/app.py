@@ -37,6 +37,11 @@ from routes.student_API.deadline import DeadlineAPICreate, DeadlineAPIGet
 api_handler.add_resource(DeadlineAPICreate, "/student/deadline")
 api_handler.add_resource(DeadlineAPIGet, "/student/deadline")
 
+from routes.admin_API.user_management import DeactivateUser, ActivateUser, ListUsers
+api_handler.add_resource(DeactivateUser, "/admin/user/deactivate")
+api_handler.add_resource(ActivateUser, "/admin/user/activate")
+api_handler.add_resource(ListUsers, "/admin/user/list")
+
 
 
 if __name__ == "__main__":

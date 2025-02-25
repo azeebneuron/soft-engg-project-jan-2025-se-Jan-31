@@ -123,15 +123,23 @@ class feedback(db.Model):
     __tablename__ = 'feedback'
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('user.id'))
+    category = Column(String(255))
     instructor_id = Column(Integer, ForeignKey('user.id'), nullable=True)
     course_id = Column(Integer, ForeignKey('courses.id'), nullable=True)
-    feedback = Column(String(255))
+    content = Column(String(255))
+    attachment = Column(String(255), nullable=True)
+    status = Column(Boolean(), default=False)
+    date = Column(DateTime(), default=datetime.now)
 
     def serialize(self):
         return {
             'id': self.id,
             'user_id': self.user_id,
+            'category': self.category,
             'instructor_id': self.instructor_id,
             'course_id': self.course_id,
-            'feedback': self.feedback
+            'content': self.content,
+            'attachment': self.attachment,
+            'status': self.status,
+            'date': self.date
         }

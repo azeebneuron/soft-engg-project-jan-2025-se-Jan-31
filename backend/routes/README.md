@@ -139,6 +139,15 @@ http://127.0.0.1:3000
     ```
 
 
+### For Feedback use the following command
+```sh
+➜  ~ curl -X POST http://127.0.0.1:3000/student/feedback \
+    -H "Authorization: Token" \
+    -H "Content-Type: multipart/form-data" \
+    -F "content=This is my feedback" \
+    -F "attachment=@/Filepath"
+```
+
 
 ## Testing
 You can test the signin route using the following URL:

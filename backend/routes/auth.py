@@ -25,7 +25,7 @@ class Signup(Resource):
         
         user = user_datastore.create_user(email=email, password=password, username=username)
 
-        user_datastore.add_role_to_user(user, "user")
+        user_datastore.add_role_to_user(user, "student")
         db.session.commit()
         return make_response(jsonify({"message": "User created successfully"}), 201)
 

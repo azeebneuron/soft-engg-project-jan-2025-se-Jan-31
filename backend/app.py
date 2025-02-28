@@ -33,9 +33,11 @@ from routes.auth import Signup, Signin
 api_handler.add_resource(Signup, "/signup")
 api_handler.add_resource(Signin, "/signin")
 
-from routes.student_API.deadline import DeadlineAPICreate, DeadlineAPIGet
+from routes.student_API.deadline import DeadlineAPICreate, DeadlineAPIGet, DeadlineAPIDelete, DeadlineAPIUpdate
 api_handler.add_resource(DeadlineAPICreate, "/student/deadline")
 api_handler.add_resource(DeadlineAPIGet, "/student/deadline")
+api_handler.add_resource(DeadlineAPIDelete, "/student/deadline")
+api_handler.add_resource(DeadlineAPIUpdate, "/student/deadline")
 
 from routes.admin_API.user_management import DeactivateUser, ActivateUser, ListUsers
 api_handler.add_resource(DeactivateUser, "/admin/user/deactivate")

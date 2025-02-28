@@ -48,4 +48,57 @@ class DeadlineAPIGet(Resource):
         ]
 
         return make_response(jsonify({'deadlines': deadlines_list}), 200)
+    
+class DeadlineAPIDelete(Resource):
+    @auth_token_required
+    @roles_required('student')
+    def delete(self):
+        data = request.get_json()
+        if not data or 'id' not in data:
+            return make_response(jsonify({'error': 'ID is required'}), 400)
+
+        id = data.get('id')
+        deadline = deadlines.query.filter_by(id=id).first()
+
+        if not deadline:
+            return make_response(jsonify({'error': 'Deadline with the given ID does not exist'}), 404)
+
+        db.session.delete(deadline)
+        db.session.commit()
+        return make_response(jsonify({'message': 'Deadline deleted successfully'}), 200)
+
+    
+
+class DeadlineAPIUpdate(Resource):
+    @auth_token_required
+    @roles_required('student')
+    def put(self):
+        data = request.get_json()
+        if not data or 'id' not in data:
+            return make_response(jsonify({'error': 'ID is required'}), 400)
+
+        id = data.get('id')
+        course = data.get('course')
+        title = data.get('title')
+        deadline_str = data.get('deadline')
+
+        deadline = deadlines.query.filter_by(id=id).first()
+
+        if not deadline:
+            return make_response(jsonify({'error': 'Deadline with the given ID does not exist'}), 404)
+
+        try:
+            if deadline_str:
+                deadline.deadline = datetime.datetime.strptime(deadline_str, '%d-%m-%Y')
+            if course:
+                deadline.course = course
+            if title:
+                deadline.title = title
+        except ValueError:
+            return make_response(jsonify({'error': 'Invalid date format. Use dd-mm-yyyy'}), 400)
+
+        db.session.commit()
+
+        return make_response(jsonify({'message': 'Deadline updated successfully'}), 200)
+
         

@@ -13,7 +13,7 @@ def create_empty_tables():
 with app.app_context():
     create_empty_tables()
     user_datastore.find_or_create_role(name='admin', description='Administrator')
-    user_datastore.find_or_create_role(name='user', description='user')
+    user_datastore.find_or_create_role(name='student', description='student')
     user_datastore.find_or_create_role(name='instructor', description='instructor')
     user_datastore.find_or_create_role(name='ta', description='Teaching assistant')
     db.session.commit()
@@ -24,7 +24,7 @@ with app.app_context():
 
     if not user_datastore.find_user(email="user@a.com"):
         admin_user=user_datastore.create_user(email="user@a.com", password="user", username="user")
-        user_datastore.add_role_to_user(admin_user, "user")
+        user_datastore.add_role_to_user(admin_user, "student")
 
     if not user_datastore.find_user(email="instructor@a.com"):
         instructor = user_datastore.create_user(email="instructor@a.com", password="instructor", username="instructor")

@@ -1,4 +1,3 @@
-// SignIn.vue
 <template>
   <div :class="isDarkMode ? 'dark-mode' : 'light-mode'" class="auth-container">
     <div class="grid-background"></div>
@@ -43,6 +42,16 @@
         </div>
 
         <button type="submit" class="auth-button">Sign In</button>
+
+        <button type="button" class="auth-button" @click="goToStudentDashboard">
+          Go to Student Dashboard
+        </button>
+        <button type="button" class="auth-button" @click="goToInfluencerDashboard">
+          Go to Influencer Dashboard
+        </button>
+        <button type="button" class="auth-button" @click="goToAdminDashboard">
+          Go to Admin Dashboard
+        </button>
       </form>
 
       <p class="auth-switch">
@@ -68,8 +77,16 @@ export default {
   },
   methods: {
     handleSignIn() {
-      // Add your sign in logic here
       console.log('Sign in:', this.formData);
+    },
+    goToStudentDashboard() {
+      this.$router.push('/dashboard'); 
+    },
+    goToInfluencerDashboard() {
+      this.$router.push('/instructor');
+    },
+    goToAdminDashboard() {
+      this.$router.push('/admindash'); 
     }
   }
 }

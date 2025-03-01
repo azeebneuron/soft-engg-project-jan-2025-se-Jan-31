@@ -10,8 +10,8 @@
         {{ isDarkMode ? 'Light Mode' : 'Dark Mode' }}
       </button>
           <h1 class="dashboard-title">
-            <span class="title-regular">Student</span>
-            <span class="title-fancy">Feedback</span>
+            <span class="title-regular">Student's</span>
+            <span class="title-fancy">Feedbacks</span>
           </h1>
           <p class="dashboard-subtitle">Review and respond to student submissions</p>
         </header>

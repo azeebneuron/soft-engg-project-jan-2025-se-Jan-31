@@ -88,54 +88,91 @@
   </template>
   
   <script>
+  import axios from 'axios';
+  
   export default {
     name: 'InstructorFeedback',
     data() {
       return {
         isDarkMode: true,
-        students: [
-          { 
-            roll: "1001", 
-            feedback: "Great course! The content was very informative and well-structured. The practical exercises helped reinforce the concepts effectively. I particularly enjoyed the group projects as they provided real-world experience adcvsdsofikjfwefbhuniwvvwhvegqbhihieonfvnojwvegjjjnipjnodv fjnqefi qdfuijv hq2eijh vfhbqweifugj bqdeivjj eyv1erubfvbw rpfjvihbwrijqe bvqiejhf bq8eihj bqedfij v1efivufhjc1web gyvewdecb qhsqdhlcvajk gc x dbghquijs vcvwiydh uoc bq eipudf bqdouyvc hbqe0uhg cb  ws9cc xq    edbh98we fd1    eudf biq1edgvuf1oweuydfcg   wui0dcvb    qs9uhccvb `w8hcvbqdsuhc v1qedu8ic bqeiyguhucg e`23v8.",
-            email: "student1@example.com",
-            lastUpdated: "2 days ago"
-          },
-          { 
-            roll: "1002", 
-            feedback: "Could use more hands-on examples. The theoretical parts were good but I felt we needed more practical sessions.",
-            email: "student2@example.com",
-            lastUpdated: "5 days ago"
-          },
-          { 
-            roll: "1003", 
-            feedback: "The instructor was amazing! Very clear explanations and always willing to help.",
-            email: "student3@example.com",
-            lastUpdated: "1 week ago"
-          },
-          { 
-            roll: "1004", 
-            feedback: "Pacing was a bit fast for me. Would appreciate more review sessions.",
-            email: "student4@example.com",
-            lastUpdated: "2 weeks ago"
-          },
-        ],
-        selectedStudent: null
+        students: [],
+        selectedStudent: null,
+        loading: false,
+        error: null
       }
     },
+    created() {
+      // Load theme preference from localStorage if available
+      const savedDarkMode = localStorage.getItem('darkMode');
+      if (savedDarkMode !== null) {
+        this.isDarkMode = savedDarkMode === 'true';
+      }
+      
+      // Fetch student feedback data when component is created
+      this.fetchStudentFeedback();
+    },
     methods: {
-        selectStudent(student) {
-            this.selectedStudent = student;
-            },
-        replyToFeedback(email) {
-            window.location.href = `mailto:${email}`;
-            },
-            toggleTheme() {
+      fetchStudentFeedback() {
+        this.loading = true;
+        this.error = null;
+        
+        // Get auth token from localStorage or wherever you store it
+        const token = localStorage.getItem('auth_token');
+        
+        // Configure headers with authentication token
+        const headers = {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        };
+        
+        axios.get('/api/instructor/feedback', { headers })
+          .then(response => {
+            this.students = response.data;
+            this.loading = false;
+            console.log('Fetched student feedback:', this.students);
+          })
+          .catch(error => {
+            console.error('Error fetching feedback:', error);
+            this.error = 'Failed to load student feedback. Please try again.';
+            this.loading = false;
+          });
+      },
+      selectStudent(student) {
+        this.selectedStudent = student;
+      },
+      replyToFeedback(email) {
+        window.location.href = `mailto:${email}?subject=Response to your feedback&body=Dear Student,%0D%0A%0D%0AThank you for your feedback.%0D%0A%0D%0A`;
+      },
+      toggleTheme() {
         this.isDarkMode = !this.isDarkMode;
-        // Optionally save the preference to localStorage
-            localStorage.setItem('darkMode', this.isDarkMode);
+        localStorage.setItem('darkMode', this.isDarkMode);
+      },
+      markAsRead(student) {
+        // Get auth token from localStorage
+        const token = localStorage.getItem('auth_token');
+        
+        // Configure headers with authentication token
+        const headers = {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        };
+        
+        // Send request to update feedback status
+        axios.post('/api/instructor/feedback', {
+          id: student.id,
+          status: true
+        }, { headers })
+          .then(() => {
+            // Update local state
+            student.status = true;
+          })
+          .catch(error => {
+            console.error('Error marking feedback as read:', error);
+            alert('Failed to update feedback status. Please try again.');
+          });
+      }
     }
   }
-}
   </script>
   
   <style scoped>

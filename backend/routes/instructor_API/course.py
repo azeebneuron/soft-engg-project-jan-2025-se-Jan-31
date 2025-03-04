@@ -3,12 +3,19 @@ from flask import request, jsonify, make_response, current_app
 from flask_restful import Resource
 from flask_security import auth_token_required, roles_required, current_user
 from models import db, User, Courses, course_enrollment, course_documents
-import datetime
+from yaml_log import log_to_yaml
+from datetime import datetime
 
 class InstructorCoursesAPI(Resource):
     @auth_token_required
     @roles_required('instructor')
     def get(self):
+        # Log the GET request
+        log_to_yaml('get_courses', {
+            'instructor_id': current_user.id,
+            'action': 'fetch_all_courses'
+        })
+        
         # Get all courses where the current user is the instructor
         courses_data = Courses.query.filter_by(instructor_id=current_user.id).all()
         
@@ -40,6 +47,12 @@ class InstructorCoursesAPI(Resource):
     @auth_token_required
     @roles_required('instructor')
     def post(self):
+        # Log the POST request
+        log_to_yaml('create_course_attempt', {
+            'instructor_id': current_user.id,
+            'data': request.get_json()
+        })
+        
         # Create a new course
         data = request.get_json()
         if not data or not data.get('name'):
@@ -53,6 +66,13 @@ class InstructorCoursesAPI(Resource):
         
         db.session.add(new_course)
         db.session.commit()
+
+        # Log the course creation event
+        log_to_yaml('course_created', {
+            'course_id': new_course.id,
+            'course_name': new_course.name,
+            'instructor_id': current_user.id
+        })
         
         return make_response(jsonify({"message": "Course created successfully", "id": new_course.id}), 201)
 
@@ -60,6 +80,13 @@ class CourseResourceAPI(Resource):
     @auth_token_required
     @roles_required('instructor')
     def get(self, course_id):
+        # Log the GET request
+        log_to_yaml('get_course_resources', {
+            'instructor_id': current_user.id,
+            'course_id': course_id,
+            'action': 'fetch_resources'
+        })
+        
         # Verify course exists and belongs to instructor
         course = Courses.query.filter_by(id=course_id, instructor_id=current_user.id).first()
         if not course:
@@ -85,6 +112,13 @@ class CourseResourceAPI(Resource):
     @auth_token_required
     @roles_required('instructor')
     def post(self, course_id):
+        # Log the POST request
+        log_to_yaml('add_course_resource_attempt', {
+            'instructor_id': current_user.id,
+            'course_id': course_id,
+            'data': request.get_json()
+        })
+        
         # Verify course exists and belongs to instructor
         course = Courses.query.filter_by(id=course_id, instructor_id=current_user.id).first()
         if not course:
@@ -105,6 +139,13 @@ class CourseResourceAPI(Resource):
         db.session.add(new_resource)
         db.session.commit()
         
+        # Log the resource creation event
+        log_to_yaml('course_resource_created', {
+            'course_id': course_id,
+            'resource_id': new_resource.id,
+            'instructor_id': current_user.id
+        })
+        
         return make_response(jsonify({
             "id": new_resource.id,
             "title": new_resource.document_name,
@@ -115,6 +156,12 @@ class ResourceAPI(Resource):
     @auth_token_required
     @roles_required('instructor')
     def delete(self, resource_id):
+        # Log the DELETE request
+        log_to_yaml('delete_resource_attempt', {
+            'instructor_id': current_user.id,
+            'resource_id': resource_id
+        })
+        
         # Get the resource
         resource = course_documents.query.get(resource_id)
         
@@ -129,12 +176,26 @@ class ResourceAPI(Resource):
         db.session.delete(resource)
         db.session.commit()
         
+        # Log the resource deletion event
+        log_to_yaml('resource_deleted', {
+            'resource_id': resource_id,
+            'course_id': resource.course_id,
+            'instructor_id': current_user.id
+        })
+        
         return make_response(jsonify({"message": "Resource deleted successfully"}), 200)
 
 class CourseStudentsAPI(Resource):
     @auth_token_required
     @roles_required('instructor')
     def get(self, course_id):
+        # Log the GET request
+        log_to_yaml('get_course_students', {
+            'instructor_id': current_user.id,
+            'course_id': course_id,
+            'action': 'fetch_students'
+        })
+        
         # Verify course exists and belongs to instructor
         course = Courses.query.filter_by(id=course_id, instructor_id=current_user.id).first()
         if not course:
@@ -154,9 +215,3 @@ class CourseStudentsAPI(Resource):
                 })
         
         return make_response(jsonify(students), 200)
-
-def initialize_routes(api):
-    api.add_resource(InstructorCoursesAPI, '/api/instructor/courses')
-    api.add_resource(CourseResourceAPI, '/api/instructor/courses/<int:course_id>/resources')
-    api.add_resource(ResourceAPI, '/api/instructor/resources/<int:resource_id>')
-    api.add_resource(CourseStudentsAPI, '/api/instructor/courses/<int:course_id>/students')

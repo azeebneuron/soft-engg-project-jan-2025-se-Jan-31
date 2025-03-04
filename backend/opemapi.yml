@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
-  title: Authentication API
-  description: API documentation for user authentication — signup and signin endpoints.
+  title: Complete API Documentaation
+  description: API documentation for all the functionalities and endpoints.
   version: 1.0.0
 servers:
   - url: http://127.0.0.1:5000/api/v1
@@ -119,24 +119,11 @@ paths:
                     type: string
                     example: Account is inactive. Please contact support.
 
-components:
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: flask_security
-
-security:
-  - BearerAuth: []
-
-
-
-paths:
   /deadlines:
     post:
       summary: Create a new deadline
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       tags:
         - Deadlines
       requestBody:
@@ -175,7 +162,7 @@ paths:
     get:
       summary: Get all deadlines for the current user
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       tags:
         - Deadlines
       responses:
@@ -204,7 +191,7 @@ paths:
     put:
       summary: Update a deadline
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       tags:
         - Deadlines
       requestBody:
@@ -237,22 +224,20 @@ paths:
         "401":
           description: Unauthorized
 
+  /deadline/{deadline_id}:
     delete:
       summary: Delete a deadline
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       tags:
         - Deadlines
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                id:
-                  type: integer
-                  example: 1
+      parameters:
+        - name: deadline_id
+          in: path
+          required: true
+          description: The ID of the deadline to delete
+          schema:
+            type: integer
       responses:
         "200":
           description: Deadline deleted successfully
@@ -263,20 +248,12 @@ paths:
         "401":
           description: Unauthorized
 
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: flask_security
 
-
-paths:
   /feedback:
     post:
       summary: Submit feedback
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       tags:
         - Feedback
       requestBody:
@@ -338,22 +315,11 @@ paths:
                     type: string
                     example: "Unauthorized access"
 
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: flask_security
-
-
-
-
-paths:
   /users/deactivate:
     post:
       summary: Deactivate a user
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       tags:
         - Users
       requestBody:
@@ -413,7 +379,7 @@ paths:
     post:
       summary: Activate a user
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       tags:
         - Users
       requestBody:
@@ -473,7 +439,7 @@ paths:
     get:
       summary: List all non-admin users
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       tags:
         - Users
       responses:
@@ -509,17 +475,6 @@ paths:
                     type: string
                     example: "Unauthorized access"
 
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: flask_security
-
-
-
-
-paths:
   /instructor/courses:
     get:
       summary: Get all courses for the instructor
@@ -527,7 +482,7 @@ paths:
       tags:
         - Courses
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       responses:
         '200':
           description: Successfully retrieved courses
@@ -568,7 +523,7 @@ paths:
       tags:
         - Courses
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -614,7 +569,7 @@ paths:
       tags:
         - Resources
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       parameters:
         - name: course_id
           in: path
@@ -659,7 +614,7 @@ paths:
       tags:
         - Resources
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       parameters:
         - name: course_id
           in: path
@@ -708,7 +663,7 @@ paths:
       tags:
         - Resources
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       parameters:
         - name: resource_id
           in: path
@@ -738,7 +693,7 @@ paths:
       tags:
         - Students
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       parameters:
         - name: course_id
           in: path
@@ -768,17 +723,6 @@ paths:
         '404':
           description: Course not found or unauthorized access
 
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: flask_security
-
-
-
-
-paths:
   /instructor/dashboard:
     get:
       summary: Get instructor dashboard data
@@ -786,7 +730,7 @@ paths:
       tags:
         - Instructor
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       responses:
         '200':
           description: Dashboard data retrieved successfully
@@ -837,17 +781,6 @@ paths:
                     type: string
                     example: Instructor role required
 
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: flask_security
-
-
-
-
-paths:
   /instructor/feedback:
     get:
       summary: Get all feedback for the instructor
@@ -855,7 +788,7 @@ paths:
       tags:
         - Instructor
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       responses:
         '200':
           description: List of student feedback retrieved successfully
@@ -928,7 +861,10 @@ paths:
 
 components:
   securitySchemes:
-    bearerAuth:
+    BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: flask_security
+      
+security:
+  - BearerAuth: [] 

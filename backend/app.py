@@ -48,7 +48,12 @@ api_handler.add_resource(ListUsers, "/admin/user/list")
 from routes.student_API.feedback import FeedbackAPI
 api_handler.add_resource(FeedbackAPI, "/student/feedback")
 
-
+# Instructor dashboard routes
+from routes.instructor_API.course import InstructorCoursesAPI, CourseResourceAPI, ResourceAPI, CourseStudentsAPI
+api_handler.add_resource(InstructorCoursesAPI, '/api/instructor/courses')
+api_handler.add_resource(CourseResourceAPI, '/api/instructor/courses/<int:course_id>/resources')
+api_handler.add_resource(ResourceAPI, '/api/instructor/resources/<int:resource_id>')
+api_handler.add_resource(CourseStudentsAPI, '/api/instructor/courses/<int:course_id>/students')
 
 if __name__ == "__main__":
     app.run(debug=True, port=3000)

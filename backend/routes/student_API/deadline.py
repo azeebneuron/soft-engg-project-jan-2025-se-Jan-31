@@ -67,8 +67,6 @@ class DeadlineAPIDelete(Resource):
         db.session.commit()
         return make_response(jsonify({'message': 'Deadline deleted successfully'}), 200)
 
-    
-
 class DeadlineAPIUpdate(Resource):
     @auth_token_required
     @roles_required('student')

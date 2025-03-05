@@ -55,5 +55,10 @@ api_handler.add_resource(CourseResourceAPI, '/api/instructor/courses/<int:course
 api_handler.add_resource(ResourceAPI, '/api/instructor/resources/<int:resource_id>')
 api_handler.add_resource(CourseStudentsAPI, '/api/instructor/courses/<int:course_id>/students')
 
+
+from routes.chatbotapi import Chatbot
+api_handler.add_resource(Chatbot, "/chatbot")
+
+
 if __name__ == "__main__":
     app.run(debug=True, port=3000)

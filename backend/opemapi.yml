@@ -1,0 +1,870 @@
+openapi: 3.0.0
+info:
+  title: Complete API Documentaation
+  description: API documentation for all the functionalities and endpoints.
+  version: 1.0.0
+servers:
+  - url: http://127.0.0.1:5000/api/v1
+
+paths:
+  /auth/signup:
+    post:
+      summary: Register a new user
+      description: Create a new user account with email, password, and username.
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  example: mysecurepassword
+                username:
+                  type: string
+                  example: johndoe
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User created successfully
+        '400':
+          description: Invalid input or user already registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Email is required
+
+  /auth/signin:
+    post:
+      summary: Login a user
+      description: Authenticate a user and return a token based on role (student, instructor, admin).
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  example: mysecurepassword
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Student login successful
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI...
+        '400':
+          description: Missing email or password
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Email is required
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid email or password
+        '403':
+          description: Inactive account
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Account is inactive. Please contact support.
+
+  /deadlines:
+    post:
+      summary: Create a new deadline
+      security:
+        - BearerAuth: []
+      tags:
+        - Deadlines
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                course:
+                  type: string
+                  example: "Data Science"
+                title:
+                  type: string
+                  example: "Project Submission"
+                deadline:
+                  type: string
+                  format: date
+                  example: "25-12-2023"
+      responses:
+        "200":
+          description: Deadline added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Deadline added successfully"
+        "400":
+          description: Invalid date format or missing fields
+        "401":
+          description: Unauthorized
+
+    get:
+      summary: Get all deadlines for the current user
+      security:
+        - BearerAuth: []
+      tags:
+        - Deadlines
+      responses:
+        "200":
+          description: List of deadlines
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deadlines:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        course:
+                          type: string
+                        title:
+                          type: string
+                        deadline:
+                          type: string
+                          format: date
+        "401":
+          description: Unauthorized
+
+    put:
+      summary: Update a deadline
+      security:
+        - BearerAuth: []
+      tags:
+        - Deadlines
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  example: 1
+                course:
+                  type: string
+                  example: "Data Science"
+                title:
+                  type: string
+                  example: "Final Project"
+                deadline:
+                  type: string
+                  format: date
+                  example: "31-12-2023"
+      responses:
+        "200":
+          description: Deadline updated successfully
+        "400":
+          description: Invalid input or date format
+        "404":
+          description: Deadline not found
+        "401":
+          description: Unauthorized
+
+  /deadline/{deadline_id}:
+    delete:
+      summary: Delete a deadline
+      security:
+        - BearerAuth: []
+      tags:
+        - Deadlines
+      parameters:
+        - name: deadline_id
+          in: path
+          required: true
+          description: The ID of the deadline to delete
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deadline deleted successfully
+        "400":
+          description: ID is required
+        "404":
+          description: Deadline not found
+        "401":
+          description: Unauthorized
+
+
+  /feedback:
+    post:
+      summary: Submit feedback
+      security:
+        - BearerAuth: []
+      tags:
+        - Feedback
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  description: Feedback content
+                  example: "The course was very informative and well-structured."
+                course_id:
+                  type: string
+                  description: ID of the course (optional)
+                  example: "101"
+                instructor_id:
+                  type: string
+                  description: ID of the instructor (optional)
+                  example: "202"
+                attachment:
+                  type: string
+                  format: binary
+                  description: Optional file attachment (PDF, images, etc.)
+      responses:
+        "201":
+          description: Feedback submitted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Feedback submitted successfully"
+                  attachment:
+                    type: string
+                    nullable: true
+                    example: "/uploads/1_feedback.pdf"
+        "400":
+          description: Invalid request (missing content or unsupported file type)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Feedback content is required"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized access"
+
+  /users/deactivate:
+    post:
+      summary: Deactivate a user
+      security:
+        - BearerAuth: []
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: integer
+                  description: ID of the user to be deactivated
+                  example: 123
+      responses:
+        "200":
+          description: User deactivated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User john_doe has been deactivated"
+        "400":
+          description: User ID not provided
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "User ID is required"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "User not found"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized access"
+
+  /users/activate:
+    post:
+      summary: Activate a user
+      security:
+        - BearerAuth: []
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: integer
+                  description: ID of the user to be activated
+                  example: 123
+      responses:
+        "200":
+          description: User activated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User john_doe has been activated"
+        "400":
+          description: User ID not provided
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "User ID is required"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "User not found"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized access"
+
+  /users/list:
+    get:
+      summary: List all non-admin users
+      security:
+        - BearerAuth: []
+      tags:
+        - Users
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 101
+                    username:
+                      type: string
+                      example: "john_doe"
+                    email:
+                      type: string
+                      example: "john@example.com"
+                    active:
+                      type: boolean
+                      example: true
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized access"
+
+  /instructor/courses:
+    get:
+      summary: Get all courses for the instructor
+      description: Fetch all courses created by the authenticated instructor.
+      tags:
+        - Courses
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successfully retrieved courses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    name:
+                      type: string
+                      example: Data Science 101
+                    enrolledStudents:
+                      type: integer
+                      example: 45
+                    resources:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 101
+                          title:
+                            type: string
+                            example: Lecture Notes
+                          link:
+                            type: string
+                            format: uri
+                            example: https://example.com/resource.pdf
+    post:
+      summary: Create a new course
+      description: Allows an instructor to create a new course.
+      tags:
+        - Courses
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Machine Learning Basics
+                description:
+                  type: string
+                  example: Introduction to ML concepts
+      responses:
+        '201':
+          description: Course created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Course created successfully
+                  id:
+                    type: integer
+                    example: 1
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Course name is required
+
+  /instructor/courses/{course_id}/resources:
+    get:
+      summary: Get course resources
+      description: Fetch all resources for a specific course.
+      tags:
+        - Resources
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successfully retrieved resources
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  course_id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: Machine Learning Basics
+                  resources:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 201
+                        title:
+                          type: string
+                          example: Dataset for training
+                        link:
+                          type: string
+                          format: uri
+                          example: https://example.com/data.csv
+        '404':
+          description: Course not found or unauthorized access
+
+    post:
+      summary: Add a new resource to a course
+      description: Allows an instructor to add a resource to their course.
+      tags:
+        - Resources
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: Python for Data Science
+                link:
+                  type: string
+                  format: uri
+                  example: https://example.com/python-course.pdf
+      responses:
+        '201':
+          description: Resource added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 301
+                  title:
+                    type: string
+                    example: Python for Data Science
+                  link:
+                    type: string
+                    format: uri
+                    example: https://example.com/python-course.pdf
+        '400':
+          description: Invalid input (missing title or link)
+
+  /instructor/resources/{resource_id}:
+    delete:
+      summary: Delete a resource
+      description: Allows an instructor to delete a resource from their course.
+      tags:
+        - Resources
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: resource_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Resource deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Resource deleted successfully
+        '403':
+          description: Unauthorized access to delete the resource
+        '404':
+          description: Resource not found
+
+  /instructor/courses/{course_id}/students:
+    get:
+      summary: Get enrolled students
+      description: Fetch a list of students enrolled in a specific course.
+      tags:
+        - Students
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successfully retrieved students
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 5
+                    email:
+                      type: string
+                      format: email
+                      example: student@example.com
+                    username:
+                      type: string
+                      example: student123
+        '404':
+          description: Course not found or unauthorized access
+
+  /instructor/dashboard:
+    get:
+      summary: Get instructor dashboard data
+      description: Fetch statistics for an instructor's dashboard, such as active courses, total students, pending tasks, and average rating.
+      tags:
+        - Instructor
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Dashboard data retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  activeCourses:
+                    type: integer
+                    example: 5
+                    description: The number of active courses taught by the instructor.
+                  totalStudents:
+                    type: integer
+                    example: 120
+                    description: The total number of students enrolled in the instructor's courses.
+                  pendingTasks:
+                    type: integer
+                    example: 3
+                    description: The count of pending tasks, such as unresolved feedback.
+                  averageRating:
+                    type: number
+                    format: float
+                    example: 4.2
+                    description: The average rating of the instructor, calculated from feedback.
+                  instructorName:
+                    type: string
+                    example: johndoe
+                    description: The username of the instructor.
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Authentication required
+        '403':
+          description: Access denied — Instructor role required
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Instructor role required
+
+  /instructor/feedback:
+    get:
+      summary: Get all feedback for the instructor
+      description: Retrieve all feedback items submitted by students for the courses taught by the authenticated instructor.
+      tags:
+        - Instructor
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of student feedback retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                      description: The unique ID of the feedback item.
+                    roll:
+                      type: string
+                      example: "1001"
+                      description: The roll number of the student (formatted as a 4-digit string).
+                    feedback:
+                      type: string
+                      example: "The course content was very helpful."
+                      description: The content of the feedback provided by the student.
+                    email:
+                      type: string
+                      format: email
+                      example: "student@example.com"
+                      description: The email of the student who provided the feedback.
+                    lastUpdated:
+                      type: string
+                      example: "2 days ago"
+                      description: Time since the feedback was submitted.
+                    course:
+                      type: string
+                      example: "Data Structures"
+                      description: The name of the course related to the feedback.
+                    attachment:
+                      type: string
+                      nullable: true
+                      example: "feedback_attachment.pdf"
+                      description: Filename of any attachment submitted with the feedback, if available.
+                    status:
+                      type: boolean
+                      example: false
+                      description: Whether the feedback has been addressed or not.
+                    date:
+                      type: string
+                      format: date-time
+                      example: "2024-03-04 14:30:00"
+                      description: The exact date and time when the feedback was submitted.
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Authentication required"
+        '403':
+          description: Access denied — Instructor role required
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Instructor role required"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: flask_security
+      
+security:
+  - BearerAuth: [] 

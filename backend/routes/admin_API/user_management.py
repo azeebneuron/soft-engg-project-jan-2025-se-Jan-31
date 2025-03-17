@@ -4,6 +4,7 @@ import datetime
 from flask import request, jsonify, make_response
 from flask_restful import Resource
 
+
 # Deactivate a user by setting their active status to False
 class DeactivateUser(Resource):
     @auth_token_required
@@ -23,7 +24,6 @@ class DeactivateUser(Resource):
         db.session.commit()
 
         return make_response(jsonify({"message": f"User {user.username} has been deactivated"}), 200)
-
 
 # Activate a user by setting their active status to True
 class ActivateUser(Resource):
@@ -55,3 +55,5 @@ class ListUsers(Resource):
         user_list = [user.serialize() for user in users]
 
         return make_response(jsonify(user_list), 200)
+
+

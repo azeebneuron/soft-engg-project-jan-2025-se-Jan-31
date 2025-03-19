@@ -1,75 +1,97 @@
-from flask import json
-from flask_security.utils import hash_password
+import pytest
+import json
+from app import app
 
-#use appropriate test client and headers
+@pytest.fixture
+def test_client():
+    app.config['TESTING'] = True
+    with app.test_client() as client:
+        with app.app_context():
+            yield client
+
+@pytest.fixture
 def auth_headers(test_client):
-    """Authenticate as admin and return headers with token."""
-    response = test_client.post("/login", json={"email": "admin@test.com", "password": "password"})
-    token = json.loads(response.data).get("auth_token")
-    return {"Authentication-Token": token}
+    response = test_client.post('/signin', json={
+        "email": "admin@a.com",
+        "password": "admin"
+    })
+    data = response.get_json()
+    token = data.get("token")
+    assert token is not None, "No auth_token received from login."
+    return {"Authorization": token}
 
+@pytest.fixture
+def non_admin_auth_headers(test_client):
+    response = test_client.post('/signin', json={
+        "email": "user@a.com",
+        "password": "user"
+    })
+    data = response.get_json()
+    token = data.get("token")
+    assert token is not None, "No auth_token received from login."
+    return {"Authorization": token}
 
-def test_deactivate_user(test_client, auth_headers):
-    """
-    Test deactivating a user.
-    
-    Test Input:
-    {
-        "user_id": 2
-    }
-    
-    Expected Output:
-    Status Code: 200
-    JSON Response:
-    {
-        "message": "User testuser has been deactivated"
-    }
-    """
-    response = test_client.post("/deactivate_user", json={"user_id": 2}, headers=auth_headers)
+def test_deactivate_user_success(test_client, auth_headers):
+    response = test_client.post(
+        "/admin/user/deactivate",
+        json={"user_id": 2},
+        headers=auth_headers
+    )
     assert response.status_code == 200
-    assert "has been deactivated" in json.loads(response.data)["message"]
+    assert "has been deactivated" in response.json["message"]
 
+def test_deactivate_user_missing_id(test_client, auth_headers):
+    response = test_client.post("/admin/user/deactivate", json={}, headers=auth_headers)
+    assert response.status_code == 400
+    assert response.get_json()["error"] == "User ID is required"
 
-def test_activate_user(test_client, auth_headers):
-    """
-    Test activating a user.
-    
-    Test Input:
-    {
-        "user_id": 2
-    }
-    
-    Expected Output:
-    Status Code: 200
-    JSON Response:
-    {
-        "message": "User testuser has been activated"
-    }
-    """
-    response = test_client.post("/activate_user", json={"user_id": 2}, headers=auth_headers)
+def test_deactivate_user_not_found(test_client, auth_headers):
+    response = test_client.post("/admin/user/deactivate", json={"user_id": 999}, headers=auth_headers)
+    assert response.status_code == 404
+    assert response.get_json()["error"] == "User not found"
+
+def test_activate_user_success(test_client, auth_headers):
+    response = test_client.post(
+        "/admin/user/activate",
+        json={"user_id": 2},
+        headers=auth_headers
+    )
     assert response.status_code == 200
-    assert "has been activated" in json.loads(response.data)["message"]
+    assert "has been activated" in response.get_json()["message"]
 
+def test_activate_user_missing_id(test_client, auth_headers):
+    response = test_client.post("/admin/user/activate", json={}, headers=auth_headers)
+    assert response.status_code == 400
+    assert response.get_json()["error"] == "User ID is required"
 
-def test_list_users_excludes_admin(test_client, auth_headers):
-    """
-    Test that listing users does not include admins.
-    
-    Test Input: None
-    
-    Expected Output:
-    Status Code: 200
-    JSON Response:
-    [
-        {
-            "id": 2,
-            "username": "testuser",
-            "email": "user@test.com",
-            "active": true
-        }
-    ]
-    """
-    response = test_client.get("/list_users", headers=auth_headers)
+def test_activate_user_not_found(test_client, auth_headers):
+    response = test_client.post("/admin/user/activate", json={"user_id": 999}, headers=auth_headers)
+    assert response.status_code == 404
+    assert response.get_json()["error"] == "User not found"
+
+def test_admin_list_users_excludes_admin(test_client, auth_headers):
+    response = test_client.get("/admin/user/list", headers=auth_headers)
     assert response.status_code == 200
-    users = json.loads(response.data)
+    users = response.get_json()
     assert all(user["username"] != "admin" for user in users)
+
+def test_unauthorized_deactivate_user(test_client):
+    response = test_client.post("/admin/user/deactivate", json={"user_id": 2})
+    assert response.status_code == 401
+
+def test_non_admin_cannot_deactivate_user(test_client, non_admin_auth_headers):
+    response = test_client.post("/admin/user/deactivate", json={"user_id": 2}, headers=non_admin_auth_headers)
+    assert response.status_code == 403
+
+def test_unauthorized_activate_user(test_client):
+    response = test_client.post("/admin/user/activate", json={"user_id": 2})
+    assert response.status_code == 401
+
+def test_non_admin_cannot_activate_user(test_client, non_admin_auth_headers):
+    response = test_client.post("/admin/user/activate", json={"user_id": 2}, headers=non_admin_auth_headers)
+    assert response.status_code == 403
+
+
+def test_non_admin_cannot_list_users(test_client, non_admin_auth_headers):
+    response = test_client.get("/admin/user/list", headers=non_admin_auth_headers)
+    assert response.status_code == 403

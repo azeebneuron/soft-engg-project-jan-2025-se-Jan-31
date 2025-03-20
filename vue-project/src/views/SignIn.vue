@@ -63,6 +63,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   name: 'SignIn',
   data() {
@@ -72,24 +74,53 @@ export default {
         email: '',
         password: '',
         remember: false
-      }
-    }
+      },
+      errorMessage: '',
+      successMessage: '',
+    };
   },
   methods: {
-    handleSignIn() {
-      console.log('Sign in:', this.formData);
+    async handleSignIn() {
+      this.errorMessage = '';
+      this.successMessage = '';
+
+      console.log("Attempting to sign in..."); // Debugging log
+
+      try {
+        const response = await axios.post('http://127.0.0.1:3000/signin', {
+          email: this.formData.email,
+          password: this.formData.password
+        });
+
+        const { message, token, role } = response.data;
+        this.successMessage = message;
+        console.log('Sign in success:', response.data);
+
+        // Store the auth token and role
+        localStorage.setItem('authToken', token);
+        localStorage.setItem('userRole', role);
+        localStorage.setItem('userEmail', this.formData.email);
+
+        // Redirect based on user role
+        this.redirectUser(role);
+
+      } catch (error) {
+        this.errorMessage = error.response?.data?.error || 'Login failed. Please try again.';
+        console.error('Sign in error:', error);
+      }
     },
-    goToStudentDashboard() {
-      this.$router.push('/dashboard'); 
-    },
-    goToInfluencerDashboard() {
-      this.$router.push('/instructor');
-    },
-    goToAdminDashboard() {
-      this.$router.push('/admindash'); 
+
+    redirectUser(role) {
+      if (role === "admin") {
+        this.$router.push('/admindash');
+      } else if (role === "instructor" || role === "ta") {
+        this.$router.push('/instructor');
+      } else {
+        this.$router.push('/dashboard');
+      }
     }
   }
-}
+};
 </script>
 
 <style>

@@ -99,4 +99,30 @@ class DeadlineAPIUpdate(Resource):
 
         return make_response(jsonify({'message': 'Deadline updated successfully'}), 200)
 
+class CourseAPIGet(Resource):
+    @auth_token_required
+    @roles_required('student')
+    def get(self):
+        user_id = current_user.id
         
+        # Get all course enrollments for the current user
+        enrollments = course_enrollment.query.filter_by(user_id=user_id).all()
+        
+        # Extract the course IDs from enrollments
+        course_ids = [enrollment.course_id for enrollment in enrollments]
+        
+        # Query for all courses that the user is enrolled in
+        user_courses = Courses.query.filter(Courses.id.in_(course_ids)).all()
+        
+        # Format courses for JSON response
+        courses_list = [
+            {
+                'id': course.id, 
+                'name': course.name,
+                'description': course.description,
+                'instructor_id': course.instructor_id
+            }
+            for course in user_courses
+        ]
+        
+        return make_response(jsonify({'courses': courses_list}), 200)

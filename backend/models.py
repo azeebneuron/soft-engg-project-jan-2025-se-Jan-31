@@ -147,3 +147,4 @@ class feedback(db.Model):
             'status': self.status,
             'date': self.date
         }
+        

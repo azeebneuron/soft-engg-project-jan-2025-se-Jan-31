@@ -56,17 +56,17 @@ class Signin(Resource):
 
         login_user(user)
 
-        role_message = "Login successful"
+        # Determine user role
+        role = "student"
         if "admin" in [role.name for role in user.roles]:
-            role_message = "Admin login successful"
+            role = "admin"
         elif "instructor" in [role.name for role in user.roles]:
-            role_message = "Instructor login successful"
+            role = "instructor"
         elif "ta" in [role.name for role in user.roles]:
-            role_message = "TA login successful"
-        else:
-            role_message = "Student login successful"
+            role = "ta"
 
         return make_response(jsonify({
-            "message": role_message,
-            "token": token
+            "message": f"{role.capitalize()} login successful",
+            "token": token,
+            "role": role  # Include role in the response
         }), 200)

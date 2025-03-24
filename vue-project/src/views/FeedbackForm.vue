@@ -25,26 +25,36 @@
           <form @submit.prevent="submitFeedback" class="add-feedback-form">
             <div class="form-group">
               <label for="category" class="form-label">Feedback Category:</label>
-              <select v-model="newfeedback.category" class="custom-input" id="category" required >
+              <select v-model="newFeedback.category" class="custom-input" id="category" required >
                 <option value="" disabled>Select a category</option>
                 <option value="instructor">Instructor</option>
                 <option value="course">Course</option>
               </select>
             </div>
             <!-- Conditional Input for Instructor Name -->
-            <div class="form-group" v-if="newfeedback.category === 'instructor'">
+            <div class="form-group" v-if="newFeedback.category === 'instructor'">
               <label for="instructorName" class="form-label">Instructor Name:</label>
-              <input v-model="newfeedback.instructorName" class="custom-input" type="text" id="instructorName" required />
+              <select v-model="newFeedback.instructor_id" class="custom-input" id="instructorName" required>
+                <option value="" disabled>Select an instructor</option>
+                <option v-for="instructor in instructors" :key="instructor.id" :value="instructor.id">
+                  {{ instructor.name }}
+                </option>
+              </select>
             </div>
             <!-- Conditional Input for Course Name -->
-            <div class="form-group" v-if="newfeedback.category === 'course'">
+            <div class="form-group" v-if="newFeedback.category === 'course'">
               <label for="courseName" class="form-label">Course Name:</label>
-              <input v-model="newfeedback.courseName" class="custom-input" type="text" id="courseName" required />
+              <select v-model="newFeedback.course_id" class="custom-input" id="courseName" required>
+                <option value="" disabled>Select a course</option>
+                <option v-for="course in courses" :key="course.id" :value="course.id">
+                  {{ course.name }}
+                </option>
+              </select>
             </div>
 
             <div class="form-group">
-              <label for="newfeedback" class="form-label">Your Feedback:</label>
-              <textarea v-model="newfeedback.content" class="custom-input" id="feedback" rows="15" cols="50" placeholder="What's on your mind?" required></textarea>
+              <label for="feedback" class="form-label">Your Feedback:</label>
+              <textarea v-model="newFeedback.content" class="custom-input" id="feedback" rows="15" cols="50" placeholder="What's on your mind?" required></textarea>
             </div>
             <!-- File Attachment Input -->
             <div class="form-group">
@@ -52,7 +62,9 @@
                 <input type="file" class="custom-input" id="attachment" @change="handleFileUpload" />
             </div>
 
-            <button class="primary-btn" type="submit">Submit</button>
+            <button class="primary-btn" type="submit" :disabled="isSubmitting">
+              {{ isSubmitting ? 'Submitting...' : 'Submit' }}
+            </button>
           </form>
         </div>
         <!-- Feedback History Section -->
@@ -61,9 +73,14 @@
           <div v-if="feedbacks.length" class="feedback-list">
             <div v-for="feedback in feedbacks" :key="feedback.id" class="feedback-item">
               <div class="feedback-info">
-                <h4>Category: {{ feedback.category }} || Instructor Name: {{ feedback.instructorName }}</h4>
+                <h4>
+                  Category: {{ feedback.category === 'instructor' ? 'Instructor' : 'Course' }} 
+                  {{ feedback.category === 'instructor' ? 
+                     `|| Instructor Name: ${feedback.instructor_name}` : 
+                     `|| Course Name: ${feedback.course_name}` }}
+                </h4>
                 <h5>
-                  <span class="created-on">Created On: {{ formatDate(feedback.date) }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                  <span class="created-on">Created On: {{ formatDate(feedback.created_at) }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
                   <span class="status">Status: {{ feedback.status }}</span>
                 </h5>
                 <p>{{ feedback.content }}</p>
@@ -82,19 +99,24 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   data() {
     return {
       isDarkMode: true,
       isMobileMenuOpen: false,
-      newfeedback: {
+      isSubmitting: false,
+      newFeedback: {
         category: '',
         content: '',
-        instructorName: '',
-        courseName: '',
-        attachment: null, // To store the selected file
+        instructor_id: '',
+        course_id: '',
+        attachment: null,
       },
-      feedbacks: [{category: 'Instructor', content: 'Rahul is a great Instructor. He teaches us really well. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', instructorName: 'Rahul', attachment: 'xyz.pdf', date: '10-01-2025', status: 'open'}],
+      feedbacks: [],
+      instructors: [],
+      courses: [],
     };
   },
   methods: {
@@ -112,56 +134,113 @@ export default {
     },
     async submitFeedback() {
       try {
+        this.isSubmitting = true;
         const formData = new FormData();
-        formData.append('category', this.newFeedback.category);
         formData.append('content', this.newFeedback.content);
-        if (this.newFeedback.category === 'instructor') {
-          formData.append('instructorName', this.newFeedback.instructorName);
-        } else if (this.newFeedback.category === 'course') {
-          formData.append('courseName', this.newFeedback.courseName);
+        
+        if (this.newFeedback.category === 'instructor' && this.newFeedback.instructor_id) {
+          formData.append('instructor_id', this.newFeedback.instructor_id);
+        } else if (this.newFeedback.category === 'course' && this.newFeedback.course_id) {
+          formData.append('course_id', this.newFeedback.course_id);
         }
+        
         if (this.newFeedback.attachment) {
           formData.append('attachment', this.newFeedback.attachment);
         }
 
-        const response = await fetch('/api/feedback', {
-          method: 'POST',
-          body: formData,
+        // Get the authentication token from localStorage or your auth system
+        const token = localStorage.getItem('authToken');
+        
+        const response = await axios.post('http://127.0.0.1:3000/student/feedback', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Authorization': token
+          }
         });
 
-        if (response.ok) {
-          alert('Thank you for your feedback!');
+        if (response.status === 201) {
+          this.$toast.success('Thank you for your feedback!');
           // Reset the form
           this.newFeedback = {
             category: '',
             content: '',
-            instructorName: '',
-            courseName: '',
+            instructor_id: '',
+            course_id: '',
             attachment: null,
           };
-          // Optionally, refresh the feedback list
+          // Refresh the feedback list
           this.fetchFeedbacks();
-        } else {
-          alert('There was an issue submitting your feedback. Please try again later.');
         }
       } catch (error) {
-        alert('There was an issue submitting your feedback. Please check your internet connection and try again.');
+        console.error('Error submitting feedback:', error);
+        this.$toast.error(error.response?.data?.error || 'There was an issue submitting your feedback. Please try again later.');
+      } finally {
+        this.isSubmitting = false;
       }
     },
     async fetchFeedbacks() {
-      // Fetch the list of feedbacks from the server
-      const response = await fetch('/api/feedbacks');
-      if (response.ok) {
-        this.feedbacks = await response.json();
+      try {
+        const token = localStorage.getItem('authToken');
+        
+        const response = await axios.get('http://127.0.0.1:3000/student/feedback', {
+          headers: {
+            'Authorization': token
+          }
+        });
+        
+        if (response.status === 200) {
+          this.feedbacks = response.data;
+        }
+      } catch (error) {
+        console.error('Error fetching feedbacks:', error);
+        this.$toast.error('Failed to load your feedback history. Please refresh the page.');
       }
     },
-    formatDate(date) {
+    async fetchInstructors() {
+      try {
+        const token = localStorage.getItem('authToken');
+        
+        const response = await axios.get('/student/instructors', {
+          headers: {
+            'Authorization': token
+          }
+        });
+        
+        if (response.status === 200) {
+          this.instructors = response.data;
+        }
+      } catch (error) {
+        console.error('Error fetching instructors:', error);
+      }
+    },
+    async fetchCourses() {
+      try {
+        const token = localStorage.getItem('authToken');
+        
+        const response = await axios.get('http://127.0.0.1:3000/student/courses', {
+          headers: {
+            'Authorization': token
+          }
+        });
+        
+        if (response.status === 200) {
+          this.courses = response.data;
+        }
+      } catch (error) {
+        console.error('Error fetching courses:', error);
+      }
+    },
+    formatDate(dateString) {
+      if (!dateString) return 'N/A';
+      
       const options = { year: 'numeric', month: 'long', day: 'numeric' };
-      return new Date(date).toLocaleDateString(undefined, options);
+      return new Date(dateString).toLocaleDateString(undefined, options);
     },
   },
   mounted() {
     this.fetchFeedbacks();
+    this.fetchInstructors();
+    this.fetchCourses();
   },
 };
 </script>

@@ -45,6 +45,58 @@ class FeedbackAPI(Resource):
         db.session.add(new_feedback)
         db.session.commit()
 
-
-
         return make_response(jsonify({"message": "Feedback submitted successfully", "attachment": attachment}), 201)
+
+    @auth_token_required
+    @roles_required('student')
+    def get(self):
+        """Get all feedback for the current user"""
+        user_feedbacks = FeedbackModel.query.filter_by(user_id=current_user.id).all()
+        
+        feedback_list = []
+        for feedback in user_feedbacks:
+            feedback_data = {
+                'id': feedback.id,
+                'content': feedback.content,
+                'attachment': feedback.attachment,
+                'status': 'Open' if not feedback.status else 'Closed',
+                'created_at': feedback.date.strftime('%Y-%m-%d'),
+                'category': 'instructor' if feedback.instructor_id else 'course'
+            }
+            
+            # Add instructor or course information
+            if feedback.instructor_id:
+                instructor = User.query.get(feedback.instructor_id)
+                if instructor:
+                    feedback_data['instructor_name'] = instructor.username
+            
+            if feedback.course_id:
+                course = Courses.query.get(feedback.course_id)
+                if course:
+                    feedback_data['course_name'] = course.name
+            
+            feedback_list.append(feedback_data)
+            
+        return make_response(jsonify(feedback_list), 200)
+
+class InstructorAPI(Resource):
+    @auth_token_required
+    def get(self):
+        """Get all instructors for the feedback form"""
+        # Find the instructor role
+        instructor_role = Role.query.filter_by(name='instructor').first()
+        
+        if not instructor_role:
+            return make_response(jsonify([]), 200)
+        
+        # Query users with the instructor role
+        instructors = User.query.join(User.roles).filter(Role.id == instructor_role.id).all()
+        
+        instructor_list = []
+        for instructor in instructors:
+            instructor_list.append({
+                'id': instructor.id,
+                'name': instructor.username or instructor.email
+            })
+            
+        return make_response(jsonify(instructor_list), 200)

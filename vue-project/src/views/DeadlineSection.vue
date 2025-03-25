@@ -49,13 +49,16 @@
                 View Resource
               </a>
             </div>
-            <div class="deadline-date">{{ formatDate(deadline.date) }}</div>
+            <div class="deadline-date">{{ formatDisplayDate(deadline.deadline) }}</div>
             <div class="deadline-status">
-              <select v-model="deadline.status" class="status-select">
+              <select v-model="deadline.status" @change="updateDeadlineStatus(deadline)" class="status-select">
                 <option value="not-started">Not Started</option>
                 <option value="in-progress">In Progress</option>
                 <option value="completed">Completed</option>
               </select>
+            </div>
+            <div class="deadline-actions">
+              <button @click="deleteDeadline(deadline.id)" class="delete-btn">Delete</button>
             </div>
           </div>
         </div>
@@ -66,46 +69,147 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   name: 'DeadlineSection',
   data() {
     return {
-      courses: [
-        { id: 1, name: "Deep Learning" },
-        { id: 2, name: "Software Engineering" },
-        { id: 3, name: "Artificial Intelligence" },
-      ],
+      courses: [],
       deadlines: [],
       newDeadline: {
         course: "",
         title: "",
         date: this.getCurrentDate(),
-        link: "",
         status: "not-started"
       },
+      apiToken: localStorage.getItem('authToken') // Get auth token from local storage
     };
   },
   methods: {
-    addDeadline() {
-      if (this.newDeadline.course && this.newDeadline.title && this.newDeadline.date) {
-        const newEntry = { ...this.newDeadline, id: Date.now() };
-        this.deadlines.push(newEntry);
-        this.resetForm();
+    // Fetch user's courses
+    async fetchCourses() {
+      try {
+        // Assuming you have an API endpoint to fetch courses
+        const response = await axios.get('/student/courses', {
+          headers: {
+            'Authorization': this.apiToken
+          }
+        });
+        this.courses = response.data.courses;
+      } catch (error) {
+        console.error('Error fetching courses:', error);
       }
     },
+    
+    // Fetch user's deadlines
+    async fetchDeadlines() {
+      try {
+        const response = await axios.get('http://127.0.0.1:3000/student/deadline', {
+          headers: {
+            'Authorization': this.apiToken
+          }
+        });
+        this.deadlines = response.data.deadlines.map(deadline => ({
+          ...deadline,
+          // Add status field to each deadline (not in API originally)
+          status: deadline.status || "not-started" 
+        }));
+      } catch (error) {
+        console.error('Error fetching deadlines:', error);
+      }
+    },
+    
+    // Add a new deadline
+    async addDeadline() {
+      if (this.newDeadline.course && this.newDeadline.title && this.newDeadline.date) {
+        try {
+          // Format date from YYYY-MM-DD to DD-MM-YYYY for the API
+          const apiFormattedDate = this.formatApiDate(this.newDeadline.date);
+          
+          const response = await axios.post('http://127.0.0.1:3000/student/deadline', {
+            course: this.newDeadline.course,
+            title: this.newDeadline.title,
+            deadline: apiFormattedDate
+          }, {
+            headers: {
+              'Authorization': this.apiToken,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          // Refresh deadlines after adding
+          await this.fetchDeadlines();
+          this.resetForm();
+        } catch (error) {
+          console.error('Error adding deadline:', error);
+        }
+      }
+    },
+    
+    // Delete a deadline
+    async deleteDeadline(id) {
+      try {
+        await axios.delete('http://127.0.0.1:3000/student/deadline', {
+          headers: {
+            'Authorization': this.apiToken,
+            'Content-Type': 'application/json'
+          },
+          data: { id: id }
+        });
+        
+        // Refresh deadlines after deletion
+        await this.fetchDeadlines();
+      } catch (error) {
+        console.error('Error deleting deadline:', error);
+      }
+    },
+    
+    // Update deadline status
+    async updateDeadlineStatus(deadline) {
+      try {
+        await axios.put('http://127.0.0.1:3000/student/deadline', {
+          id: deadline.id,
+          course: deadline.course,
+          title: deadline.title,
+          deadline: deadline.deadline,
+          status: deadline.status // Note: API might need to be updated to handle status
+        }, {
+          headers: {
+            'Authorization': this.apiToken,
+            'Content-Type': 'application/json'
+          }
+        });
+      } catch (error) {
+        console.error('Error updating deadline status:', error);
+      }
+    },
+    
+    // Reset form fields
     resetForm() {
-      this.newDeadline = { 
-        course: "", 
-        title: "", 
+      this.newDeadline = {
+        course: "",
+        title: "",
         date: this.getCurrentDate(),
-        link: "", 
         status: "not-started"
       };
     },
-    formatDate(date) {
+    
+    // Format date for display (from DD-MM-YYYY to readable format)
+    formatDisplayDate(dateString) {
+      const [day, month, year] = dateString.split('-');
+      const date = new Date(`${year}-${month}-${day}`);
       const options = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
-      return new Date(date).toLocaleDateString("en-US", options);
+      return date.toLocaleDateString("en-US", options);
     },
+    
+    // Format date for API (from YYYY-MM-DD to DD-MM-YYYY)
+    formatApiDate(dateString) {
+      const [year, month, day] = dateString.split('-');
+      return `${day}-${month}-${year}`;
+    },
+    
+    // Get current date in YYYY-MM-DD format for form input
     getCurrentDate() {
       const today = new Date();
       const year = today.getFullYear();
@@ -115,7 +219,10 @@ export default {
     }
   },
   created() {
+    // Set initial date and fetch data when component is created
     this.newDeadline.date = this.getCurrentDate();
+    this.fetchCourses();
+    this.fetchDeadlines();
   }
 };
 </script>

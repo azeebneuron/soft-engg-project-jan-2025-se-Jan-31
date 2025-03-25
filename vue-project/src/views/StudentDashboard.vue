@@ -19,8 +19,9 @@
         </div>
         <div class="stat-card">
           <h3>Upcoming Deadlines</h3>
-          <p class="stat-value">4</p>
-          <p class="stat-trend">Next in 2 days</p>
+          <p class="stat-value">{{ upcomingDeadlines.length }}</p>
+          <p class="stat-trend" v-if="upcomingDeadlines.length > 0">Next in {{ upcomingDeadlines[0].daysLeft }} days</p>
+          <p class="stat-trend" v-else>No upcoming deadlines</p>
         </div>
         <div class="stat-card">
           <h3>Course Progress</h3>
@@ -59,7 +60,16 @@
             <h2>Upcoming Deadlines</h2>
             <button class="view-all-btn" onclick="window.location.href='/deadline'">View All</button>
           </div>
-          <div class="deadline-list">
+          <div class="deadline-list" v-if="isLoadingDeadlines">
+            <div class="loading-indicator">Loading deadlines...</div>
+          </div>
+          <div class="deadline-list" v-else-if="deadlineError">
+            <div class="error-message">{{ deadlineError }}</div>
+          </div>
+          <div class="deadline-list" v-else-if="upcomingDeadlines.length === 0">
+            <div class="no-deadlines">No upcoming deadlines found</div>
+          </div>
+          <div class="deadline-list" v-else>
             <div v-for="deadline in upcomingDeadlines" :key="deadline.id" class="deadline-item">
               <div class="deadline-info">
                 <h4>{{ deadline.title }}</h4>
@@ -184,6 +194,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   name: 'StudentDashboard',
   data() {
@@ -193,6 +205,9 @@ export default {
       selectedFaculty: '',
       feedbackText: '',
       rating: 0,
+      isLoadingDeadlines: true,
+      deadlineError: null,
+      upcomingDeadlines: [],
       chatbotFeatures: [
         {
           id: 1,
@@ -218,11 +233,6 @@ export default {
           title: 'Personalized Learning',
           description: 'Adaptive support based on your needs'
         }
-      ],
-      upcomingDeadlines: [
-        { id: 1, title: 'Assignment 3', course: 'Deep Learning', daysLeft: 2 },
-        { id: 2, title: 'Project Submission', course: 'Software Engineering', daysLeft: 4 },
-        { id: 3, title: 'Quiz', course: 'AI', daysLeft: 5 }
       ],
       courses: [
         { id: 1, name: 'Deep Learning', progress: 75 },
@@ -252,7 +262,63 @@ export default {
       ]
     }
   },
+  created() {
+    this.fetchDeadlines();
+  },
   methods: {
+    fetchDeadlines() {
+      this.isLoadingDeadlines = true;
+      this.deadlineError = null;
+      
+      // Get the authentication token from localStorage or wherever you store it
+      const token = localStorage.getItem('authToken');
+      
+      axios.get('http://127.0.0.1:3000/student/deadline', {
+        headers: {
+          'Authorization': token
+        }
+      })
+      .then(response => {
+        const deadlinesData = response.data.deadlines;
+        
+        // Process the deadlines and calculate days left
+        this.upcomingDeadlines = deadlinesData.map((deadline, index) => {
+          // Parse the deadline date
+          const deadlineDate = this.parseDeadlineDate(deadline.deadline);
+          const today = new Date();
+          
+          // Calculate days left
+          const timeDiff = deadlineDate.getTime() - today.getTime();
+          const daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
+          
+          return {
+            id: index + 1, // Generate an ID if not provided by the API
+            title: deadline.title,
+            course: deadline.course,
+            daysLeft: daysLeft,
+            date: deadline.deadline
+          };
+        });
+        
+        // Sort deadlines by days left (closest first)
+        this.upcomingDeadlines.sort((a, b) => a.daysLeft - b.daysLeft);
+        
+        // Filter out past deadlines
+        this.upcomingDeadlines = this.upcomingDeadlines.filter(deadline => deadline.daysLeft >= 0);
+      })
+      .catch(error => {
+        console.error('Error fetching deadlines:', error);
+        this.deadlineError = 'Failed to load deadlines. Please try again later.';
+      })
+      .finally(() => {
+        this.isLoadingDeadlines = false;
+      });
+    },
+    parseDeadlineDate(dateString) {
+      // Parse date in 'dd-mm-yyyy' format
+      const [day, month, year] = dateString.split('-').map(Number);
+      return new Date(year, month - 1, day); // month is 0-indexed in JavaScript Date
+    },
     setRating(value) {
       this.rating = value;
     },
@@ -304,7 +370,12 @@ export default {
   .dashboard-header {
     margin-bottom: 2rem;
   }
-  
+/*************  ✨ Codeium Command ⭐  *************/
+  /**
+   * Clears the timer interval when the component is about to be destroyed.
+   * This prevents memory leaks when the user navigates away from the dashboard.
+   */
+/******  b6e067cd-2019-4851-80d3-68d735296394  *******/  
   .dashboard-title {
     font-size: clamp(1.5rem, 4vw, 2.5rem);
     margin-bottom: 0.5rem;

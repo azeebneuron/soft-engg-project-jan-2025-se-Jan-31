@@ -66,6 +66,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   name: 'SignUp',
   data() {
@@ -76,16 +78,40 @@ export default {
         email: '',
         password: '',
         confirmPassword: ''
-      }
-    }
+      },
+      errorMessage: '',
+      successMessage: ''
+    };
   },
   methods: {
-    handleSignUp() {
-      // Add your sign up logic here
-      console.log('Sign up:', this.formData);
+    async handleSignUp() {
+      this.errorMessage = '';
+      this.successMessage = '';
+
+      console.log("Signup button clicked!"); // ✅ Debugging log
+
+      if (this.formData.password !== this.formData.confirmPassword) {
+        this.errorMessage = 'Passwords do not match.';
+        console.error(this.errorMessage);
+        return;
+      }
+
+      try {
+        const response = await axios.post('http://127.0.0.1:3000/signup', {
+          email: this.formData.email,
+          password: this.formData.password,
+          username: this.formData.name
+        });
+
+        this.successMessage = response.data.message;
+        console.log('Sign up success:', response.data);
+      } catch (error) {
+        this.errorMessage = error.response?.data?.error || 'Signup failed. Please try again.';
+        console.error('Sign up error:', error);
+      }
     }
   }
-}
+};
 </script>
 
 <style>

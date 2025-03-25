@@ -33,11 +33,12 @@ from routes.auth import Signup, Signin
 api_handler.add_resource(Signup, "/signup")
 api_handler.add_resource(Signin, "/signin")
 
-from routes.student_API.deadline import DeadlineAPICreate, DeadlineAPIGet, DeadlineAPIDelete, DeadlineAPIUpdate
+from routes.student_API.deadline import DeadlineAPICreate, DeadlineAPIGet, DeadlineAPIDelete, DeadlineAPIUpdate, CourseAPIGet
 api_handler.add_resource(DeadlineAPICreate, "/student/deadline")
 api_handler.add_resource(DeadlineAPIGet, "/student/deadline")
 api_handler.add_resource(DeadlineAPIDelete, "/student/deadline")
 api_handler.add_resource(DeadlineAPIUpdate, "/student/deadline")
+api_handler.add_resource(CourseAPIGet, "/student/courses")
 
 from routes.admin_API.user_management import DeactivateUser, ActivateUser, ListUsers
 api_handler.add_resource(DeactivateUser, "/admin/user/deactivate")
@@ -45,8 +46,9 @@ api_handler.add_resource(ActivateUser, "/admin/user/activate")
 api_handler.add_resource(ListUsers, "/admin/user/list")
 
 
-from routes.student_API.feedback import FeedbackAPI
+from routes.student_API.feedback import FeedbackAPI, InstructorAPI
 api_handler.add_resource(FeedbackAPI, "/student/feedback")
+api_handler.add_resource(InstructorAPI, "/student/instructors")
 
 # Instructor dashboard routes
 from routes.instructor_API.course import InstructorCoursesAPI, CourseResourceAPI, ResourceAPI, CourseStudentsAPI

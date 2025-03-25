@@ -12,14 +12,14 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Load and process the resume PDF
-def load_resume(pdf_path):
+# Load and process the student_handbook PDF
+def load_student_handbook(pdf_path):
     loader = PyPDFLoader(pdf_path)
     documents = loader.load()
     
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=500,  # Smaller chunks for resume
-        chunk_overlap=100
+        chunk_size=1024,  # Smaller chunks for student_handbook
+        chunk_overlap=200
     )
     chunks = text_splitter.split_documents(documents)
     
@@ -33,35 +33,38 @@ def create_vector_store(chunks):
     
     return vector_store
 
-# Define the resume chatbot prompt
-RESUME_QA_TEMPLATE = """
-You are an AI assistant that has access to a resume. You will answer questions about the person's qualifications, experience, skills, education, and other information contained in their resume.
+# Define the student_handbook chatbot prompt
+STUDENT_HANDBOOK_QA_TEMPLATE = """
+You are an AI assistant with access to a Student Handbook. Your role is to answer student queries accurately and concisely, relying only on the information in the handbook. You provide guidance on policies, academic requirements, campus regulations, qualifications, skills, and other relevant topics covered in the handbook.
 
-Relevant information from the resume:
+Relevant information from the Student Handbook:
 {context}
 
 Current conversation:
 {chat_history}
 
-Question: {question}
+Student's question:
+{question}
 
-Your response should:
-1. Be concise and accurate, based only on the information in the resume
-2. Not make up or infer information that isn't explicitly stated in the resume
-3. If asked about something not in the resume, honestly state that the information isn't available
-4. Format your response in a professional manner
+Response Guidelines:
+1. Accuracy First - Your response must be based only on the information available in the Student Handbook. Do not generate or infer details beyond what is provided.
 
-Respond based solely on the information provided in the resume sections above.
-"""
+2. Transparency - If the handbook does not contain the requested information, clearly state that the information is unavailable.
 
-# Initialize the resume chatbot
-def create_resume_chatbot(vector_store):
+3. Concise & Professional Tone - Keep your responses clear, professional, and easy to understand. Avoid unnecessary elaboration.
+
+4. Reference Handbook Sections - Where applicable, reference specific sections or pages in the handbook to help students find more details.
+
+Always ensure that your answers align strictly with the handbook content and remain informative, relevant, and helpful."""
+
+# Initialize the student_handbook chatbot
+def create_student_handbook_chatbot(vector_store):
     memory = ConversationBufferMemory(
         memory_key="chat_history",
         return_messages=True
     )
     
-    qa_prompt = PromptTemplate.from_template(RESUME_QA_TEMPLATE)
+    qa_prompt = PromptTemplate.from_template(STUDENT_HANDBOOK_QA_TEMPLATE)
     
     # Use Gemini for the language model
     llm = ChatGoogleGenerativeAI(
@@ -84,29 +87,29 @@ def create_resume_chatbot(vector_store):
     
     return qa_chain
 
-# Main function to run the resume chatbot
+# Main function to run the student_handbook chatbot
 def main():
-    print("Resume RAG Chatbot Initializing...")
+    print("RAG Chatbot Initializing...")
     
-    # Get resume path from user
-    # Replace this with your resume path
-    pdf_path = "RahulSinghResume.pdf"
+    # Get student_handbook path from user
+    # Replace this with your student_handbook path
+    pdf_path = "IITM BS Degree Programme - Student Handbook.pdf"
     
     if not os.path.exists(pdf_path):
         print(f"Error: File {pdf_path} not found.")
-        return
+        return 
     
-    print("Processing resume...")
-    chunks = load_resume(pdf_path)
-    print(f"Resume processed into {len(chunks)} chunks.")
+    print("Processing Student Handbook...")
+    chunks = load_student_handbook(pdf_path)
+    print(f"Student Handbook processed into {len(chunks)} chunks.")
     
     print("Creating vector database...")
     vector_store = create_vector_store(chunks)
     
     print("Initializing chatbot...")
-    chatbot = create_resume_chatbot(vector_store)
+    chatbot = create_student_handbook_chatbot(vector_store)
     
-    print("\nResume Chatbot Ready! Ask questions about the resume (type 'exit' to end)")
+    print("\nStudent Handbook Chatbot Ready! Ask questions about the student handbook (type 'exit' to end)")
     
     while True:
         query = input("\nQuestion: ")

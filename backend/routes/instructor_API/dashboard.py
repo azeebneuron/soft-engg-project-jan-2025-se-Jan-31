@@ -1,6 +1,6 @@
 from flask import request, jsonify
 from flask_restful import Resource, Api
-from flask_security import current_user, auth_required
+from flask_security import current_user, auth_token_required, roles_required
 from datetime import datetime
 from models import db, User, Role, Courses, course_enrollment, course_documents, feedback
 from sqlalchemy import func
@@ -10,7 +10,8 @@ instructor_bp = Blueprint('instructor_api', __name__)
 api = Api(instructor_bp)
 
 class InstructorDashboardData(Resource):
-    @auth_required('token')
+    @auth_token_required
+    @roles_required('instructor')
     def get(self):
         """Get data for instructor dashboard summary"""
         if not current_user.is_authenticated:
@@ -38,20 +39,10 @@ class InstructorDashboardData(Resource):
             status=False
         ).count()
         
-        # Calculate average rating from feedback
-        avg_rating_query = db.session.query(
-            func.avg(feedback.rating)
-        ).filter(
-            feedback.instructor_id == instructor_id
-        ).scalar()
-        
-        avg_rating = float(avg_rating_query) if avg_rating_query else 0
-        
         return {
             "activeCourses": len(courses),
             "totalStudents": total_students,
             "pendingTasks": pending_tasks,
-            "averageRating": round(avg_rating, 1),
             "instructorName": current_user.username
         }
 

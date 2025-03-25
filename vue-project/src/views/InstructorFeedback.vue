@@ -1,142 +1,171 @@
 <template>
-    <div :class="isDarkMode ? 'dark-mode' : 'light-mode'" class="dashboard-container">
-      <div class="dashboard-content">
-        <!-- Main Header -->
-        <header class="dashboard-header">
-            <!-- Theme Toggle Button -->
-      <button @click="toggleTheme" class="theme-toggle">
-        <span v-if="isDarkMode" class="theme-icon">🌞</span>
-        <span v-else class="theme-icon">🌙</span>
-        {{ isDarkMode ? 'Light Mode' : 'Dark Mode' }}
-      </button>
-          <h1 class="dashboard-title">
-            <span class="title-regular">Student</span>
-            <span class="title-fancy">Feedback</span>
-          </h1>
-          <p class="dashboard-subtitle">Review and respond to student submissions</p>
-        </header>
-  
-        <!-- Main Grid Layout -->
-        <div class="feedback-layout">
-          <!-- Left Container - Student List -->
-          <div class="student-container">
-            <div class="dashboard-card">
-              <div class="card-header">
-                <h2>Students</h2>
-                <span class="view-all-btn">{{ students.length }} Total</span>
-              </div>
-              <div class="student-list">
-                <div 
-                  v-for="student in students" 
-                  :key="student.roll" 
-                  @click="selectStudent(student)"
-                  :class="['student-item', { active: selectedStudent?.roll === student.roll }]"
-                >
-                  <div class="student-info">
-                    <span class="student-id">Student {{ student.roll }}</span>
-                    <span class="last-updated">{{ student.lastUpdated }}</span>
-                  </div>
+  <div :class="isDarkMode ? 'dark-mode' : 'light-mode'" class="dashboard-container">
+    <div class="dashboard-content">
+      <!-- Main Header -->
+      <header class="dashboard-header">
+          <!-- Theme Toggle Button -->
+    <button @click="toggleTheme" class="theme-toggle">
+      <span v-if="isDarkMode" class="theme-icon">🌞</span>
+      <span v-else class="theme-icon">🌙</span>
+      {{ isDarkMode ? 'Light Mode' : 'Dark Mode' }}
+    </button>
+        <h1 class="dashboard-title">
+          <span class="title-regular">Student</span>
+          <span class="title-fancy">Feedback</span>
+        </h1>
+        <p class="dashboard-subtitle">Review and respond to student submissions</p>
+      </header>
+
+      <!-- Main Grid Layout -->
+      <div class="feedback-layout">
+        <!-- Left Container - Student List -->
+        <div class="student-container">
+          <div class="dashboard-card">
+            <div class="card-header">
+              <h2>Students</h2>
+              <span class="view-all-btn">{{ students.length }} Total</span>
+            </div>
+            <div class="student-list">
+              <div 
+                v-for="student in students" 
+                :key="student.id" 
+                @click="selectStudent(student)"
+                :class="['student-item', { active: selectedStudent?.id === student.id }]"
+              >
+                <div class="student-info">
+                  <span class="student-id">Student {{ student.roll }}</span>
+                  <span class="last-updated">{{ student.lastUpdated }}</span>
                 </div>
               </div>
             </div>
           </div>
-  
-          <!-- Right Container - Feedback Display -->
-          <div class="feedback-container">
-            <div class="dashboard-card" v-if="selectedStudent">
-              <div class="card-header">
-                <div>
-                  <h2>Feedback Details</h2>
-                  <p class="subtitle">Student ID: {{ selectedStudent.roll }}</p>
-                </div>
-                <button class="action-btn" @click="replyToFeedback(selectedStudent.email)">
-                  Reply via Email
-                </button>
+        </div>
+
+        <!-- Right Container - Feedback Display -->
+        <div class="feedback-container">
+          <div class="dashboard-card" v-if="selectedStudent">
+            <div class="card-header">
+              <div>
+                <h2>Feedback Details</h2>
+                <p class="subtitle">Student ID: {{ selectedStudent.roll }}</p>
               </div>
-              <div class="feedback-content">
-                <div class="stats-grid">
-                  <div class="stat-card">
-                    <h3>Course Rating</h3>
-                    <p class="stat-value">4.5</p>
-                    <p class="stat-trend positive">Above Average</p>
-                  </div>
-                  <div class="stat-card">
-                    <h3>Submission Date</h3>
-                    <p class="stat-value">{{ selectedStudent.lastUpdated }}</p>
-                    <p class="stat-trend">Recent Activity</p>
-                  </div>
+              <button class="action-btn" @click="replyToFeedback(selectedStudent.email)">
+                Reply via Email
+              </button>
+            </div>
+            <div class="feedback-content">
+              <div class="stats-grid">
+                <div class="stat-card">
+                  <h3>Course</h3>
+                  <p class="stat-value">{{ selectedStudent.course }}</p>
+                  <p class="stat-trend">{{ selectedStudent.status }}</p>
                 </div>
-                <div class="feedback-text-container dashboard-card">
-                  <h3>Feedback Message</h3>
-                  <p class="feedback-text">{{ selectedStudent.feedback }}</p>
+                <div class="stat-card">
+                  <h3>Submission Date</h3>
+                  <p class="stat-value">{{ selectedStudent.lastUpdated }}</p>
+                  <p class="stat-trend">{{ selectedStudent.date }}</p>
+                </div>
+              </div>
+              <div class="feedback-text-container dashboard-card">
+                <h3>Feedback Message</h3>
+                <p class="feedback-text">{{ selectedStudent.feedback }}</p>
+                <div v-if="selectedStudent.attachment" class="attachment-section">
+                  <h4>Attachment</h4>
+                  <a :href="selectedStudent.attachment" target="_blank" class="attachment-link">
+                    View Attachment
+                  </a>
                 </div>
               </div>
             </div>
-            
-            <div class="dashboard-card empty-state" v-else>
-              <div class="card-header">
-                <h2>Student Feedback</h2>
-              </div>
-              <div class="empty-content">
-                <p>Select a student from the list to view their feedback</p>
-              </div>
+          </div>
+          
+          <div class="dashboard-card empty-state" v-else>
+            <div class="card-header">
+              <h2>Student Feedback</h2>
+            </div>
+            <div class="empty-content">
+              <p>Select a student from the list to view their feedback</p>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </template>
-  
-  <script>
-  export default {
-    name: 'InstructorFeedback',
-    data() {
-      return {
-        isDarkMode: true,
-        students: [
-          { 
-            roll: "1001", 
-            feedback: "Great course! The content was very informative and well-structured. The practical exercises helped reinforce the concepts effectively. I particularly enjoyed the group projects as they provided real-world experience adcvsdsofikjfwefbhuniwvvwhvegqbhihieonfvnojwvegjjjnipjnodv fjnqefi qdfuijv hq2eijh vfhbqweifugj bqdeivjj eyv1erubfvbw rpfjvihbwrijqe bvqiejhf bq8eihj bqedfij v1efivufhjc1web gyvewdecb qhsqdhlcvajk gc x dbghquijs vcvwiydh uoc bq eipudf bqdouyvc hbqe0uhg cb  ws9cc xq    edbh98we fd1    eudf biq1edgvuf1oweuydfcg   wui0dcvb    qs9uhccvb `w8hcvbqdsuhc v1qedu8ic bqeiyguhucg e`23v8.",
-            email: "student1@example.com",
-            lastUpdated: "2 days ago"
-          },
-          { 
-            roll: "1002", 
-            feedback: "Could use more hands-on examples. The theoretical parts were good but I felt we needed more practical sessions.",
-            email: "student2@example.com",
-            lastUpdated: "5 days ago"
-          },
-          { 
-            roll: "1003", 
-            feedback: "The instructor was amazing! Very clear explanations and always willing to help.",
-            email: "student3@example.com",
-            lastUpdated: "1 week ago"
-          },
-          { 
-            roll: "1004", 
-            feedback: "Pacing was a bit fast for me. Would appreciate more review sessions.",
-            email: "student4@example.com",
-            lastUpdated: "2 weeks ago"
-          },
-        ],
-        selectedStudent: null
+  </div>
+</template>
+
+<script>
+import axios from 'axios';
+
+export default {
+name: 'InstructorFeedback',
+data() {
+  return {
+    isDarkMode: true,
+    students: [],
+    selectedStudent: null,
+    loading: false,
+    error: null
+  }
+},
+created() {
+  // Load dark mode preference from localStorage
+  const savedDarkMode = localStorage.getItem('darkMode');
+  if (savedDarkMode !== null) {
+    this.isDarkMode = JSON.parse(savedDarkMode);
+  }
+
+  // Fetch feedback when component is created
+  this.fetchFeedback();
+},
+methods: {
+  async fetchFeedback() {
+    this.loading = true;
+    this.error = null;
+
+    try {
+      // Assuming you have an authentication token stored 
+      const token = localStorage.getItem('authToken');
+      
+      const response = await axios.get('http://127.0.0.1:3000/api/instructor/feedback', {
+        headers: {
+          'Authorization': token
+        }
+      });
+
+      this.students = response.data;
+    } catch (error) {
+      console.error('Error fetching feedback:', error);
+      this.error = 'Failed to load student feedback. Please try again.';
+      
+      // Optional: handle different error scenarios
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        if (error.response.status === 401) {
+          // Unauthorized - redirect to login or refresh token
+          this.$router.push('/login');
+        }
       }
-    },
-    methods: {
-        selectStudent(student) {
-            this.selectedStudent = student;
-            },
-        replyToFeedback(email) {
-            window.location.href = `mailto:${email}`;
-            },
-            toggleTheme() {
-        this.isDarkMode = !this.isDarkMode;
-        // Optionally save the preference to localStorage
-            localStorage.setItem('darkMode', this.isDarkMode);
+    } finally {
+      this.loading = false;
     }
+  },
+  selectStudent(student) {
+    this.selectedStudent = student;
+  },
+  replyToFeedback(email) {
+    // Keep the existing email functionality
+    window.location.href = `mailto:${email}`;
+  },
+  toggleTheme() {
+    this.isDarkMode = !this.isDarkMode;
+    // Save the preference to localStorage
+    localStorage.setItem('darkMode', JSON.stringify(this.isDarkMode));
   }
 }
-  </script>
+}
+</script>
+
   
   <style scoped>
   .dashboard-container {

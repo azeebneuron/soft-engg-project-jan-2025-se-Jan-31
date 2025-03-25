@@ -137,6 +137,7 @@ export default {
         this.isSubmitting = true;
         const formData = new FormData();
         formData.append('content', this.newFeedback.content);
+        formData.append('category', this.newFeedback.category);
         
         if (this.newFeedback.category === 'instructor' && this.newFeedback.instructor_id) {
           formData.append('instructor_id', this.newFeedback.instructor_id);
@@ -148,7 +149,6 @@ export default {
           formData.append('attachment', this.newFeedback.attachment);
         }
 
-        // Get the authentication token from localStorage or your auth system
         const token = localStorage.getItem('authToken');
         
         const response = await axios.post('http://127.0.0.1:3000/student/feedback', formData, {
@@ -159,8 +159,11 @@ export default {
         });
 
         if (response.status === 201) {
-          this.$toast.success('Thank you for your feedback!');
-          // Reset the form
+          // Immediately add the new feedback to the list
+          const newFeedbackItem = response.data;
+          this.feedbacks.unshift(newFeedbackItem);
+
+          // Clear the form
           this.newFeedback = {
             category: '',
             content: '',
@@ -168,8 +171,14 @@ export default {
             course_id: '',
             attachment: null,
           };
-          // Refresh the feedback list
-          this.fetchFeedbacks();
+
+          // Reset file input
+          if (this.$refs.fileInput) {
+            this.$refs.fileInput.value = '';
+          }
+
+          // Show success toast
+          this.$toast.success('Thank you for your feedback!');
         }
       } catch (error) {
         console.error('Error submitting feedback:', error);

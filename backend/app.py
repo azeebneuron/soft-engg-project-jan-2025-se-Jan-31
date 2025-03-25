@@ -40,10 +40,12 @@ api_handler.add_resource(DeadlineAPIDelete, "/student/deadline")
 api_handler.add_resource(DeadlineAPIUpdate, "/student/deadline")
 api_handler.add_resource(CourseAPIGet, "/student/courses")
 
-from routes.admin_API.user_management import DeactivateUser, ActivateUser, ListUsers
-api_handler.add_resource(DeactivateUser, "/admin/user/deactivate")
-api_handler.add_resource(ActivateUser, "/admin/user/activate")
-api_handler.add_resource(ListUsers, "/admin/user/list")
+from routes.admin_API.user_management import DeactivateUser, ActivateUser, ListUsers, AssignCourseToInstructor, ListCourses
+api_handler.add_resource(ListUsers, '/api/users')
+api_handler.add_resource(ListCourses, '/api/courses')
+api_handler.add_resource(AssignCourseToInstructor, '/api/courses/assign')
+api_handler.add_resource(DeactivateUser, '/api/user/deactivate')
+api_handler.add_resource(ActivateUser, '/api/user/activate')
 
 
 from routes.student_API.feedback import FeedbackAPI, InstructorAPI
@@ -56,6 +58,12 @@ api_handler.add_resource(InstructorCoursesAPI, '/api/instructor/courses')
 api_handler.add_resource(CourseResourceAPI, '/api/instructor/courses/<int:course_id>/resources')
 api_handler.add_resource(ResourceAPI, '/api/instructor/resources/<int:resource_id>')
 api_handler.add_resource(CourseStudentsAPI, '/api/instructor/courses/<int:course_id>/students')
+
+from routes.instructor_API.dashboard import InstructorDashboardData 
+api_handler.add_resource(InstructorDashboardData, '/api/instructor/dashboard')
+
+from routes.instructor_API.feedback import InstructorFeedbackAPI
+api_handler.add_resource(InstructorFeedbackAPI, '/api/instructor/feedback')
 
 
 from routes.chatbotapi import Chatbot

@@ -132,16 +132,18 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   name: 'InstructorDashboard',
   data() {
     return {
       isDarkMode: true,
       instructorName: 'Instructor',
-      activeCourses: 4,
-      totalStudents: 125,
-      pendingTasks: 28,
-      averageRating: 4.8,
+      activeCourses: 0,
+      totalStudents: 0,
+      pendingTasks: 0,
+      averageRating: 4.6,
       aiFeatures: [
         {
           id: 1,
@@ -168,27 +170,8 @@ export default {
           description: 'AI-powered recommendations for course improvement'
         }
       ],
-      courses: [
-        { id: 1, name: 'Advanced Machine Learning', code: 'CS401', students: 45 },
-        { id: 2, name: 'Data Structures', code: 'CS201', students: 60 },
-        { id: 3, name: 'Algorithm Design', code: 'CS301', students: 35 }
-      ],
-      recentFeedback: [
-        {
-          id: 1,
-          course: 'CS401',
-          rating: 4.8,
-          text: 'Excellent explanations of complex concepts',
-          date: '2 days ago'
-        },
-        {
-          id: 2,
-          course: 'CS201',
-          rating: 4.5,
-          text: 'Very helpful practice problems',
-          date: '3 days ago'
-        }
-      ],
+      courses: [],
+      recentFeedback: [],
       upcomingClasses: [
         { id: 1, time: '10:00 AM', course: 'Advanced ML', room: 'Room 401' },
         { id: 2, time: '2:00 PM', course: 'Data Structures', room: 'Room 201' },
@@ -204,7 +187,70 @@ export default {
       ]
     }
   },
+  created() {
+    this.fetchDashboardData();
+    this.fetchCourses();
+    this.fetchRecentFeedback();
+  },
   methods: {
+    async fetchDashboardData() {
+      try {
+        const token = localStorage.getItem('authToken');
+        const response = await axios.get('http://127.0.0.1:3000/api/instructor/dashboard', {
+          headers: {
+            'Authorization': token
+          }
+        });
+        
+        const data = response.data;
+        this.activeCourses = data.activeCourses;
+        this.totalStudents = data.totalStudents;
+        this.pendingTasks = data.pendingTasks;
+        this.instructorName = data.instructorName;
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        // Optionally, show an error notification
+      }
+    },
+    async fetchCourses() {
+      try {
+        const token = localStorage.getItem('authToken');
+        const response = await axios.get('http://127.0.0.1:3000/api/instructor/courses', {
+          headers: {
+            'Authorization': token
+          }
+        });
+        
+        this.courses = response.data.map(course => ({
+          id: course.id,
+          name: course.name,
+          code: course.id, // Use course ID as code since code isn't provided
+          students: course.enrolledStudents
+        }));
+      } catch (error) {
+        console.error('Error fetching courses:', error);
+      }
+    },
+    async fetchRecentFeedback() {
+      try {
+        const token = localStorage.getItem('authToken');
+        const response = await axios.get('http://127.0.0.1:3000/api/instructor/feedback', {
+          headers: {
+            'Authorization': token
+          }
+        });
+        
+        this.recentFeedback = response.data.slice(0, 2).map(feedback => ({
+          id: feedback.id,
+          course: feedback.course,
+          rating: 4.5, // Since rating isn't provided in the feedback API
+          text: feedback.feedback,
+          date: feedback.lastUpdated
+        }));
+      } catch (error) {
+        console.error('Error fetching feedback:', error);
+      }
+    },
     navigateToAnalytics() {
       this.$router.push('/analytics');
     },
@@ -227,6 +273,7 @@ export default {
   }
 }
 </script>
+
 <style scoped>
 .dashboard-container {
   min-height: 100vh;

@@ -4,6 +4,11 @@
     <div class="grid-fade"></div>
     
     <div class="auth-card">
+      <!-- Error Message Flash -->
+      <div v-if="errorMessage" class="error-flash">
+        {{ errorMessage }}
+      </div>
+
       <div class="auth-header">
         <h2 class="auth-title">
           <span class="title-regular">Welcome</span>
@@ -41,16 +46,8 @@
           <a href="#" class="forgot-password">Forgot Password?</a>
         </div>
 
-        <button type="submit" class="auth-button">Sign In</button>
-
-        <button type="button" class="auth-button" @click="goToStudentDashboard">
-          Go to Student Dashboard
-        </button>
-        <button type="button" class="auth-button" @click="goToInfluencerDashboard">
-          Go to Influencer Dashboard
-        </button>
-        <button type="button" class="auth-button" @click="goToAdminDashboard">
-          Go to Admin Dashboard
+        <button type="submit" class="auth-button" :disabled="isLoading">
+          {{ isLoading ? 'Signing In...' : 'Sign In' }}
         </button>
       </form>
 
@@ -76,15 +73,14 @@ export default {
         remember: false
       },
       errorMessage: '',
-      successMessage: '',
+      isLoading: false,
     };
   },
   methods: {
     async handleSignIn() {
+      // Reset previous error and set loading state
       this.errorMessage = '';
-      this.successMessage = '';
-
-      console.log("Attempting to sign in..."); // Debugging log
+      this.isLoading = true;
 
       try {
         const response = await axios.post('http://127.0.0.1:3000/signin', {
@@ -93,8 +89,6 @@ export default {
         });
 
         const { message, token, role } = response.data;
-        this.successMessage = message;
-        console.log('Sign in success:', response.data);
 
         // Store the auth token and role
         localStorage.setItem('authToken', token);
@@ -105,8 +99,38 @@ export default {
         this.redirectUser(role);
 
       } catch (error) {
-        this.errorMessage = error.response?.data?.error || 'Login failed. Please try again.';
+        // Handle different error scenarios
+        if (error.response) {
+          // The request was made and the server responded with a status code
+          switch (error.response.status) {
+            case 400:
+              // Missing email or password
+              this.errorMessage = error.response.data.error || 'Email and password are required';
+              break;
+            case 401:
+              // Invalid credentials
+              this.errorMessage = 'Invalid email or password';
+              break;
+            case 403:
+              // Inactive account
+              this.errorMessage = error.response.data.error || 'Account is inactive. Please contact support.';
+              break;
+            default:
+              // Generic error for other server responses
+              this.errorMessage = 'An error occurred. Please try again.';
+          }
+        } else if (error.request) {
+          // The request was made but no response was received
+          this.errorMessage = 'No response from server. Please check your connection.';
+        } else {
+          // Something happened in setting up the request
+          this.errorMessage = 'Error processing your request';
+        }
+
         console.error('Sign in error:', error);
+      } finally {
+        // Reset loading state
+        this.isLoading = false;
       }
     },
 
@@ -125,6 +149,41 @@ export default {
 
 <style>
 /* Add this CSS to both components or in a shared CSS file */
+
+/* Add error flash styling */
+.error-flash {
+  background-color: rgba(255, 0, 0, 0.1);
+  border: 1px solid rgba(255, 0, 0, 0.3);
+  color: red;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.light-mode .error-flash {
+  background-color: rgba(255, 0, 0, 0.05);
+  border-color: rgba(255, 0, 0, 0.2);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Disabled button styling */
+.auth-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .auth-container {
   min-height: 100vh;
   display: flex;

@@ -67,47 +67,111 @@
   </template>
   
   <script>
+  import axios from 'axios';
+  
   export default {
     name: 'AdminDashboard',
     data() {
       return {
         isDarkMode: true,
-        courses: [
-          { id: 1, name: 'Deep Learning', enrolledStudents: 150, resources: [] },
-          { id: 2, name: 'Software Engineering', enrolledStudents: 75, resources: [] },
-          { id: 3, name: 'Software Testing', enrolledStudents: 100, resources: [] }
-        ],
+        courses: [],
         showAddResourceModal: false,
         showViewResourcesModal: false,
         selectedCourse: null,
         newResource: { title: '', link: '' }
       }
     },
+    created() {
+      this.fetchCourses();
+    },
     methods: {
+      // Create a constant for the authorization token
+      getAuthToken() {
+        const token = localStorage.getItem('authToken');
+        return {
+          headers: {
+            'Authorization':token
+          }
+        };
+      },
+  
+      // Fetch courses from the backend
+      fetchCourses() {
+        axios.get('http://127.0.0.1:3000/api/instructor/courses', this.getAuthToken())
+          .then(response => {
+            this.courses = response.data;
+          })
+          .catch(error => {
+            console.error('Error fetching courses:', error);
+            alert('Failed to fetch courses. Please try again.');
+          });
+      },
+  
+      // Open Add Resource Modal
       openAddResourceModal(courseId) {
         this.selectedCourse = this.courses.find(course => course.id === courseId);
         this.showAddResourceModal = true;
       },
+  
+      // Close Add Resource Modal
       closeAddResourceModal() {
         this.showAddResourceModal = false;
         this.newResource = { title: '', link: '' };
       },
+  
+      // Save Resource to Backend
       saveResource() {
         if (this.newResource.title && this.newResource.link) {
-          this.selectedCourse.resources.push({
-            id: Date.now(),
-            title: this.newResource.title,
-            link: this.newResource.link
+          // Send POST request to add resource
+          axios.post(`http://127.0.0.1:3000/api/instructor/courses/${this.selectedCourse.id}/resources`, 
+            {
+              title: this.newResource.title,
+              link: this.newResource.link
+            }, 
+            this.getAuthToken()
+          )
+          .then(response => {
+            // Hard reload the page after successful resource addition
+            window.location.reload();
+          })
+          .catch(error => {
+            console.error('Error adding resource:', error);
+            alert('Failed to add resource. Please try again.');
           });
-          this.closeAddResourceModal();
         }
       },
+  
+      // View Resources Modal
       viewResources(courseId) {
-        this.selectedCourse = this.courses.find(course => course.id === courseId);
-        this.showViewResourcesModal = true;
+        // Fetch resources for the specific course
+        axios.get(`http://127.0.0.1:3000/api/instructor/courses/${courseId}/resources`, this.getAuthToken())
+          .then(response => {
+            this.selectedCourse = this.courses.find(course => course.id === courseId);
+            this.selectedCourse.resources = response.data.resources;
+            this.showViewResourcesModal = true;
+          })
+          .catch(error => {
+            console.error('Error fetching resources:', error);
+            alert('Failed to fetch resources. Please try again.');
+          });
       },
+  
+      // Close View Resources Modal
       closeViewResourcesModal() {
         this.showViewResourcesModal = false;
+      },
+  
+      // Delete a resource
+      deleteResource(resourceId) {
+        axios.delete(`/api/instructor/resources/${resourceId}`, this.getAuthToken())
+          .then(response => {
+            // Hard reload the page after successful resource deletion
+            window.location.reload();
+          })
+          .catch(error => {
+            console.error('Error deleting resource:', error);
+            alert('Failed to delete resource. Please try again.');
+          });
       }
     }
   }

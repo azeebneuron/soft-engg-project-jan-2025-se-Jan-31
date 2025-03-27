@@ -65,6 +65,23 @@ api_handler.add_resource(InstructorDashboardData, '/api/instructor/dashboard')
 from routes.instructor_API.feedback import InstructorFeedbackAPI
 api_handler.add_resource(InstructorFeedbackAPI, '/api/instructor/feedback')
 
+# Instructor Insight APIs
+from routes.instructor_API.instructor_insight import InstructorInsightAPI, CourseInsightAPI, AtRiskStudentsAPI, TrainRiskModelAPI
+api_handler.add_resource(InstructorInsightAPI, '/api/instructor/insights')
+api_handler.add_resource(CourseInsightAPI, '/api/instructor/courses/<int:course_id>/insights')
+api_handler.add_resource(AtRiskStudentsAPI, '/api/instructor/at-risk-students')
+api_handler.add_resource(TrainRiskModelAPI, '/api/admin/train-risk-model')
+
+# Student Insight APIs
+from routes.student_API.student_insight import StudentInsightAPI, CourseRecommendationAPI, PerformanceComparisonAPI
+api_handler.add_resource(StudentInsightAPI, '/api/student/insights')
+api_handler.add_resource(CourseRecommendationAPI, '/api/student/recommendations')
+api_handler.add_resource(PerformanceComparisonAPI, '/api/student/courses/<int:course_id>/comparison')
+
+# Data Generation API (for demo purposes)
+from routes.admin_API.data_generation import GenerateSyntheticDataAPI
+api_handler.add_resource(GenerateSyntheticDataAPI, '/api/admin/generate-data')
+
 
 from routes.chatbotapi import Chatbot
 api_handler.add_resource(Chatbot, "/chatbot")

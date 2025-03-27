@@ -1,0 +1,10 @@
+google-generativeai
+pandas
+numpy
+scikit-learn
+python-dotenv
+flask-restful
+flask-security
+flask-security-too
+flask-cors
+pytest

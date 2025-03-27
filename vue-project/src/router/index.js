@@ -73,6 +73,16 @@ const router = createRouter({
       path: '/aisummary',
       name: 'aisummary',
       component: () => import('../views/AISummary.vue')
+    },
+    {
+      path: '/instructor/insights',
+      name: 'instructor-insights',
+      component: () => import('../views/InstructorInsightsDashboard.vue')
+    },
+    {
+      path: '/student/insights',
+      name: 'student-insights',
+      component: () => import('../views/StudentInsightsDashboard.vue')
     }
   ],
 })

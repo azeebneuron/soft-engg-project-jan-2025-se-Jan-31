@@ -6,3 +6,5 @@ envback/
 instance/
 uploads/
 env1/
+*.txt
+venv/

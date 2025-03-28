@@ -3,8 +3,6 @@ import HomeView from '../views/HomeView.vue'
 import SignUp from '../views/SignUp.vue'    // Add direct import
 import SignIn from '../views/SignIn.vue'    // Add direct import
 import DeadlineSection from '../views/DeadlineSection.vue'
-import AdminDashboard from '@/views/AdminDashboard.vue'
-import CourseMan from '@/views/CourseMan.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -73,6 +71,16 @@ const router = createRouter({
       path: '/aisummary',
       name: 'aisummary',
       component: () => import('../views/AISummary.vue')
+    },
+    {
+      path: '/instructor/insights',
+      name: 'instructor-insights',
+      component: () => import('../views/InstructorInsightsDashboard.vue')
+    },
+    {
+      path: '/student/insights',
+      name: 'student-insights',
+      component: () => import('../views/StudentInsightsDashboard.vue')
     }
   ],
 })

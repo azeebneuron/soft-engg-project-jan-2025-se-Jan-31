@@ -1,0 +1,25 @@
+course_code,course_name,trimester,instructor,credits
+MATH101,Mathematics 1,1,Dr. Anil Kumar,4
+STAT101,Statistics 1,1,Dr. Priya Singh,4
+PROG101,Programming Basics,1,Prof. Raj Sharma,4
+SYSC101,System Commands,1,Prof. Kavita Reddy,4
+MATH201,Mathematics 2,2,Dr. Anil Kumar,4
+STAT201,Statistics 2,2,Dr. Priya Singh,4
+JAVA201,Java Programming,2,Prof. Suresh Verma,4
+DBMS201,DBMS,2,Prof. Meena Gupta,4
+MLF301,Machine Learning Foundations,3,Dr. Vikram Iyer,4
+DSA301,Data Structures & Algorithms,3,Prof. Suresh Verma,4
+PDSA301,"Programming, Data Structures & Algorithms",3,Prof. Raj Sharma,4
+DBS301,Database Systems,3,Prof. Meena Gupta,4
+MLT401,Machine Learning Techniques,4,Dr. Vikram Iyer,4
+CSYS401,Computer Systems,4,Prof. Kavita Reddy,4
+BDS401,Big Data Systems,4,Dr. Amit Patel,4
+DVIS401,Data Visualization,4,Dr. Neha Sharma,4
+MLP501,Machine Learning Practice,5,Dr. Vikram Iyer,4
+DL501,Deep Learning,5,Dr. Amit Patel,4
+NLP501,Natural Language Processing,5,Dr. Neha Sharma,4
+CV501,Computer Vision,5,Dr. Ravi Menon,4
+RL601,Reinforcement Learning,6,Dr. Ravi Menon,4
+TSA601,Time Series Analysis,6,Dr. Priya Singh,4
+BA601,Business Analytics,6,Dr. Neha Sharma,4
+CAP601,Capstone Project,6,Dr. Vikram Iyer,4

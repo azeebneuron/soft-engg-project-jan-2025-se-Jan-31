@@ -108,3 +108,108 @@
     instructor_id: 3
   event_type: get_courses
   timestamp: '2025-03-25T21:05:03.773479'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-27T01:59:07.038758'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-27T02:01:05.903073'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-27T02:01:12.514648'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-27T02:04:38.399006'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-27T02:04:40.117483'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-27T02:04:42.798057'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-27T02:13:28.288126'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-27T02:17:58.794401'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-27T02:18:08.771329'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-27T02:19:36.716683'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-27T02:25:18.486921'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-27T02:25:19.820899'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-27T02:25:22.187257'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-27T02:25:28.138483'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-27T02:25:33.543930'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-27T02:25:36.500087'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-27T02:25:46.899869'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-27T21:14:58.600680'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-27T21:17:52.949494'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-28T01:01:46.849710'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-28T16:18:37.577758'

@@ -246,7 +246,7 @@
           // --- Make the API call with the token ---
           const response = await axios.get('http://127.0.0.1:3000/api/instructor/insights', { // Make sure the URL is correct
             headers: {
-              'Authorization': `Bearer ${token}` // Use the token retrieved from localStorage
+              'Authorization': token // Use the token retrieved from localStorage
             }
           });
           // -----------------------------------------

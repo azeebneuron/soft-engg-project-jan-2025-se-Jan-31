@@ -203,3 +203,13 @@
     instructor_id: 3
   event_type: get_courses
   timestamp: '2025-03-27T21:17:52.949494'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-28T01:01:46.849710'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-28T16:18:37.577758'

@@ -1,6 +1,6 @@
 from flask import request, jsonify
 from flask_restful import Resource
-from flask_security import auth_required, current_user
+from flask_security import auth_required, current_user, roles_required
 import json
 import os
 from dotenv import load_dotenv
@@ -13,11 +13,12 @@ from llm_integration import NarrativeGenerator
 load_dotenv()
 
 # Initialize the analytics and narrative generator
-analytics = PerformanceAnalytics(data_path='data')
+analytics = PerformanceAnalytics(data_path='/Users/sambhavjha/soft-engg-project-jan-2025-se-Jan-31/backend/data')
 narrative_generator = NarrativeGenerator()
 
 class InstructorInsightAPI(Resource):
-    # @auth_required('token')
+    @auth_required('token')
+    @roles_required('instructor')
     def get(self):
         """
         Get instructor insights and personalized narrative
@@ -29,14 +30,17 @@ class InstructorInsightAPI(Resource):
             return {'message': 'Access denied. Instructor role required.'}, 403
         
         # Get instructor name from the authenticated user
-        instructor_name = current_user.name
+        # instructor_name = current_user.username
+        instructor_name = "Dr. Anil Kumar"
         
         try:
             # Get comprehensive dashboard data
             dashboard_data = analytics.get_instructor_dashboard_data(instructor_name)
+            print(dashboard_data)
             
             # Generate narrative
             narrative = narrative_generator.generate_instructor_narrative(dashboard_data)
+            print(narrative)
             
             # Return combined data
             return {
@@ -49,7 +53,8 @@ class InstructorInsightAPI(Resource):
 
 
 class CourseInsightAPI(Resource):
-    # @auth_required('token')
+    @auth_required('token')
+    @roles_required('instructor')
     def get(self, course_id):
         """
         Get detailed insights for a specific course
@@ -89,7 +94,8 @@ class CourseInsightAPI(Resource):
 
 
 class AtRiskStudentsAPI(Resource):
-    # @auth_required('token')
+    @auth_required('token')
+    @roles_required('instructor')
     def get(self):
         """
         Get a list of at-risk students for the instructor
@@ -115,7 +121,8 @@ class AtRiskStudentsAPI(Resource):
 
 
 class TrainRiskModelAPI(Resource):
-    # @auth_required('token')
+    @auth_required('token')
+    @roles_required('instructor')
     def post(self):
         """
         Train/update the risk prediction model

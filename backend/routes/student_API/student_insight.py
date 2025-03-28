@@ -24,7 +24,7 @@ class StudentInsightAPI(Resource):
             return {'message': 'Access denied. Student role required.'}, 403
         
         # Get student ID from the authenticated user
-        student_id = current_user.student_id  # This would come from your user model
+        student_id = current_user.id  # This would come from your user model
         
         try:
             # Get performance data for the student
@@ -56,7 +56,7 @@ class CourseRecommendationAPI(Resource):
             return {'message': 'Access denied. Student role required.'}, 403
         
         # Get student ID from the authenticated user
-        student_id = current_user.student_id
+        student_id = current_user.id
         
         try:
             # Get performance data for the student
@@ -88,7 +88,7 @@ class PerformanceComparisonAPI(Resource):
             return {'message': 'Access denied. Student role required.'}, 403
         
         # Get student ID from the authenticated user
-        student_id = current_user.student_id
+        student_id = current_user.id
         
         try:
             # Map course_id to course_code (in a real app, this would be from database)

@@ -44,6 +44,7 @@ class PerformanceAnalytics:
             print(f"Error loading data: {e}")
     
     def get_course_performance(self, course_code=None, instructor=None):
+        print('hola')
         """
         Get performance metrics for a specific course or all courses taught by an instructor
         Returns a dict with various metrics
@@ -173,6 +174,8 @@ class PerformanceAnalytics:
             if assignment_scores[0] > assignment_scores[-1] + 5:
                 metrics['insights'].append("Declining performance trend across assignments. Consider adjusting difficulty curve.")
                 
+            print(metrics)
+
         return metrics
     
     def get_student_performance(self, student_id):
@@ -491,7 +494,7 @@ class PerformanceAnalytics:
             'overall_metrics': {},
             'insights': []
         }
-        
+
         # Process each course
         all_feedback_ratings = []
         
@@ -505,7 +508,10 @@ class PerformanceAnalytics:
         
         # Overall metrics
         if all_feedback_ratings:
-            dashboard['overall_metrics']['avg_instructor_rating'] = sum(all_feedback_ratings) / len(all_feedback_ratings)
+            try:
+                dashboard['overall_metrics']['avg_instructor_rating'] = sum(all_feedback_ratings) / len(all_feedback_ratings)
+            except:
+                print('Some error')
         
         # Get at-risk students across all courses
         at_risk_students = self.get_at_risk_students(instructor_name=instructor_name)
@@ -514,7 +520,7 @@ class PerformanceAnalytics:
         
         # Generate insights
         dashboard['insights'] = self.generate_instructor_insights(dashboard)
-        
+
         return dashboard
     
     def get_at_risk_students(self, course_code=None, instructor_name=None):

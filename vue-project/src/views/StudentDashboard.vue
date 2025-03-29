@@ -35,14 +35,51 @@
         </div>
       </div>
 
-      <!-- AI Chatbot Section -->
-      <div class="dashboard-card chatbot-card">
+      <!-- AI Assistants Section (Split into two) -->
+      <div class="ai-assistants-grid">
+        <!-- Handbook Assistant (Left) -->
+        <div class="dashboard-card handbook-assistant-card">
+          <div class="card-header">
+            <h2>Handbook Assistant</h2>
+            <button class="action-btn" @click="navigateToChatbot">Continue to Chat</button>
+          </div>
+          <div class="chatbot-features">
+            <div v-for="feature in chatbotFeatures" :key="feature.id" class="feature-item">
+              <div class="feature-icon">{{ feature.icon }}</div>
+              <div class="feature-info">
+                <h4>{{ feature.title }}</h4>
+                <p>{{ feature.description }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Insights (Right) -->
+        <div class="dashboard-card ai-insights-card">
+          <div class="card-header">
+            <h2>AI Insights</h2>
+            <button class="action-btn" @click="navigateToInsights">View Insights</button>
+          </div>
+          <div class="chatbot-features">
+            <div v-for="feature in insightsFeatures" :key="feature.id" class="feature-item">
+              <div class="feature-icon">{{ feature.icon }}</div>
+              <div class="feature-info">
+                <h4>{{ feature.title }}</h4>
+                <p>{{ feature.description }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Video Learning AI Section -->
+      <div class="dashboard-card video-chatbot-card">
         <div class="card-header">
-          <h2>AI Learning Assistant</h2>
-          <button class="action-btn" @click="navigateToChatbot">Continue to Chat</button>
+          <h2>Video Learning AI Assistant</h2>
+          <button class="action-btn" @click="navigateToVideoChatbot">Watch & Learn</button>
         </div>
         <div class="chatbot-features">
-          <div v-for="feature in chatbotFeatures" :key="feature.id" class="feature-item">
+          <div v-for="feature in videoChatbotFeatures" :key="feature.id" class="feature-item">
             <div class="feature-icon">{{ feature.icon }}</div>
             <div class="feature-info">
               <h4>{{ feature.title }}</h4>
@@ -121,7 +158,6 @@
         </div>
 
         <!-- Faculty Feedback -->
-        <!-- Faculty Feedback Card -->
         <div class="dashboard-card feedback-card">
           <div class="card-header">
             <h2>Faculty Feedback</h2>
@@ -181,15 +217,12 @@
             </a>
           </div>
         </div>
-
-
       </div>
     </div>
 
     <footer class="dashboard-footer">
       Made with ❤️ by Commander in Chief
     </footer>
-
   </div>
 </template>
 
@@ -220,18 +253,46 @@ export default {
           icon: '📚',
           title: 'Multi-Course Support',
           description: 'One assistant for all your subjects'
+        }
+      ],
+      insightsFeatures: [
+        {
+          id: 1,
+          icon: '📊',
+          title: 'Learning Analytics',
+          description: 'Track your progress and identify growth areas'
+        },
+        {
+          id: 2,
+          icon: '🧠',
+          title: 'Personalized Recommendations',
+          description: 'Get suggestions tailored to your learning style'
+        }
+      ],
+      videoChatbotFeatures: [
+        {
+          id: 1,
+          icon: '🎥',
+          title: 'Learn from Any Video',
+          description: 'Paste YouTube URLs or playlist IDs to start learning'
+        },
+        {
+          id: 2,
+          icon: '💬',
+          title: 'Real-time Q&A',
+          description: 'Ask questions about video content as you watch'
         },
         {
           id: 3,
-          icon: '⚡',
-          title: 'Real-time Help',
-          description: 'Get assistance anytime, anywhere'
+          icon: '🔍',
+          title: 'Concept Breakdown',
+          description: 'Get detailed explanations of complex topics'
         },
         {
           id: 4,
-          icon: '🎯',
-          title: 'Personalized Learning',
-          description: 'Adaptive support based on your needs'
+          icon: '📝',
+          title: 'Auto-Generated Notes',
+          description: 'Save key points from your video lectures'
         }
       ],
       courses: [
@@ -325,6 +386,12 @@ export default {
     navigateToChatbot() {
       this.$router.push('/chatbot');
     },
+    navigateToInsights() {
+      this.$router.push('/student/insights');
+    },
+    navigateToVideoChatbot() {
+      this.$router.push('/student/videochatbot');
+    },
     navigateToFeedback() {
       this.$router.push('/feedback');
     },
@@ -353,250 +420,267 @@ export default {
 }
 </script>
   
-  <style>
+<style>
+.dashboard-container {
+  min-height: 100vh;
+  padding: 2rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.dashboard-content {
+  position: relative;
+  z-index: 10;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.dashboard-header {
+  margin-bottom: 2rem;
+}
+
+.dashboard-title {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  margin-bottom: 0.5rem;
+}
+
+.title-regular {
+  color: var(--text-dark);
+}
+
+.title-fancy {
+  font-family: 'Pacifico', cursive;
+  background: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.dashboard-subtitle {
+  color: var(--text-secondary-dark);
+  font-size: 1rem;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  padding: 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 0.5rem 0;
+}
+
+.stat-trend {
+  font-size: 0.9rem;
+  color: var(--text-secondary-dark);
+}
+
+.stat-trend.positive {
+  color: #10B981;
+}
+
+/* AI Assistants Grid */
+.ai-assistants-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Dashboard Grid */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1.5rem;
+}
+
+.dashboard-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  padding: 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.view-all-btn {
+  color: rgb(99, 102, 241);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+/* Deadlines */
+.deadline-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.deadline-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0.5rem;
+}
+
+.deadline-date.urgent {
+  color: #EF4444;
+}
+
+/* Progress Bars */
+.progress-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.progress-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.progress-bar {
+  width: 200px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  margin-top: 0.5rem;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+/* Activities */
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0.5rem;
+}
+
+.activity-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+}
+
+/* Recommendations */
+.recommendations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.recommendation-item {
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0.5rem;
+}
+
+.action-btn {
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
+  border: none;
+  border-radius: 0.5rem;
+  color: white;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
   .dashboard-container {
-    min-height: 100vh;
-    padding: 2rem;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  }
-  
-  .dashboard-content {
-    position: relative;
-    z-index: 10;
-    max-width: 1280px;
-    margin: 0 auto;
-  }
-  
-  .dashboard-header {
-    margin-bottom: 2rem;
-  }
-/*************  ✨ Codeium Command ⭐  *************/
-  /**
-   * Clears the timer interval when the component is about to be destroyed.
-   * This prevents memory leaks when the user navigates away from the dashboard.
-   */
-/******  b6e067cd-2019-4851-80d3-68d735296394  *******/  
-  .dashboard-title {
-    font-size: clamp(1.5rem, 4vw, 2.5rem);
-    margin-bottom: 0.5rem;
-  }
-  
-  .title-regular {
-    color: var(--text-dark);
-  }
-  
-  .title-fancy {
-    font-family: 'Pacifico', cursive;
-    background: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
-    -webkit-background-clip: text;
-    color: transparent;
-  }
-  
-  .dashboard-subtitle {
-    color: var(--text-secondary-dark);
-    font-size: 1rem;
-  }
-  
-  /* Stats Grid */
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1rem;
-    margin-bottom: 2rem;
-  }
-  
-  .stat-card {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    padding: 1.5rem;
-    border-radius: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-  
-  .stat-value {
-    font-size: 2rem;
-    font-weight: bold;
-    margin: 0.5rem 0;
-  }
-  
-  .stat-trend {
-    font-size: 0.9rem;
-    color: var(--text-secondary-dark);
-  }
-  
-  .stat-trend.positive {
-    color: #10B981;
-  }
-  
-  /* Dashboard Grid */
-  .dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-    gap: 1.5rem;
-  }
-  
-  .dashboard-card {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    padding: 1.5rem;
-    border-radius: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-  
-  .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-  }
-  
-  .view-all-btn {
-    color: rgb(99, 102, 241);
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 0.9rem;
-  }
-  
-  /* Deadlines */
-  .deadline-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .deadline-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 0.5rem;
-  }
-  
-  .deadline-date.urgent {
-    color: #EF4444;
-  }
-  
-  /* Progress Bars */
-  .progress-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .progress-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .progress-bar {
-    width: 200px;
-    height: 6px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
-    margin-top: 0.5rem;
-  }
-  
-  .progress-fill {
-    height: 100%;
-    background: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
-    border-radius: 3px;
-    transition: width 0.3s ease;
-  }
-  
-  /* Activities */
-  .activity-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .activity-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.75rem;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 0.5rem;
-  }
-  
-  .activity-icon {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 50%;
-  }
-  
-  /* Recommendations */
-  .recommendations-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .recommendation-item {
     padding: 1rem;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 0.5rem;
-  }
-  
-  .action-btn {
-    margin-top: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
-    border: none;
-    border-radius: 0.5rem;
-    color: white;
-    cursor: pointer;
-    font-size: 0.9rem;
-  }
-  
-  /* Responsive Design */
-  @media (max-width: 768px) {
-    .dashboard-container {
-      padding: 1rem;
-    }
-  
-    .dashboard-grid {
-      grid-template-columns: 1fr;
-    }
-  
-    .progress-bar {
-      width: 150px;
-    }
-  }
-  
-  /* Light Mode Adjustments */
-  .light-mode .dashboard-card {
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-  }
-  
-  .light-mode .stat-card {
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-  }
-  
-  .light-mode .deadline-item,
-  .light-mode .activity-item,
-  .light-mode .recommendation-item {
-    background: rgba(0, 0, 0, 0.03);
-  }
-  
-  .light-mode .progress-bar {
-    background: rgba(0, 0, 0, 0.1);
   }
 
-  /* Chatbot Card Styles */
-.chatbot-card {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ai-assistants-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .progress-bar {
+    width: 150px;
+  }
+}
+
+/* Light Mode Adjustments */
+.light-mode .dashboard-card {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.light-mode .stat-card {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.light-mode .deadline-item,
+.light-mode .activity-item,
+.light-mode .recommendation-item {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.light-mode .progress-bar {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* Handbook Assistant Card Styles */
+.handbook-assistant-card {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
+}
+
+/* AI Insights Card Styles */
+.ai-insights-card {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(14, 165, 233, 0.1));
+}
+
+/* Video Chatbot Card Styles */
+.video-chatbot-card {
   grid-column: 1 / -1;
   margin-bottom: 1.5rem;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(239, 68, 68, 0.1));
 }
 
 .chatbot-features {

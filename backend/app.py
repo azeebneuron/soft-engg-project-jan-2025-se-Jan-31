@@ -3,9 +3,11 @@ from flask import Flask
 from flask_restful import Api
 from flask_cors import CORS
 from flask_security import Security
+from pymongo import MongoClient
 from models import db, user_datastore
 import json
 import numpy as np
+import os
 
 def numpy_json_encoder(obj):
     """
@@ -35,6 +37,12 @@ def create_app():
     # Configure JSON handling
     app.json.ensure_ascii = False
     app.json.default = numpy_json_encoder
+
+    # Initialize MongoDB (PyMongo)
+    mongo_uri = os.getenv("MONGODB_URI", "mongodb://localhost:27017/")
+    db_name = os.getenv("DB_NAME", "virtual_ta_db")
+    mongo_client = MongoClient(mongo_uri)
+    app.mongo = mongo_client[db_name]  # Attach MongoDB to app
     
     db.init_app(app)
     security = Security(app, user_datastore)
@@ -121,8 +129,19 @@ from routes.admin_API.data_generation import GenerateSyntheticDataAPI
 api_handler.add_resource(GenerateSyntheticDataAPI, '/api/admin/generate-data')
 
 
-from routes.chatbotapi import Chatbot
-api_handler.add_resource(Chatbot, "/chatbot")
+from chatbot.chatbotapi import ChatResource, ConversationsResource, ConversationResource
+# Register API endpoints
+api_handler.add_resource(ChatResource, '/api/chat')
+api_handler.add_resource(ConversationsResource, '/api/conversations')
+api_handler.add_resource(ConversationResource, '/api/conversation/<string:conversation_id>', '/api/conversation')
+
+# VideoBot API Routes
+from videoBot import ProcessLecture, VideoChatbot, ProcessPlaylist, GetPlaylistDetails, GetAllPlaylists
+api_handler.add_resource(ProcessLecture, '/api/lecture')
+api_handler.add_resource(VideoChatbot, '/api/video/chat')
+api_handler.add_resource(ProcessPlaylist, '/api/playlist')
+api_handler.add_resource(GetPlaylistDetails, '/api/playlist/<string:playlist_id>')
+api_handler.add_resource(GetAllPlaylists, '/api/playlists')
 
 
 if __name__ == "__main__":

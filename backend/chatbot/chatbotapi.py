@@ -1,4 +1,7 @@
 import os
+from flask import Flask, request, jsonify
+from flask_restful import Api, Resource
+from flask_cors import CORS
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import HuggingFaceEmbeddings
@@ -8,17 +11,19 @@ from langchain.memory import ConversationBufferMemory
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
+import uuid
 
 # Load environment variables
 load_dotenv()
 
-# Load and process the student_handbook PDF
+
+# Load and process the student handbook PDF
 def load_student_handbook(pdf_path):
     loader = PyPDFLoader(pdf_path)
     documents = loader.load()
     
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1024,  # Smaller chunks for student_handbook
+        chunk_size=1024,
         chunk_overlap=200
     )
     chunks = text_splitter.split_documents(documents)
@@ -27,13 +32,12 @@ def load_student_handbook(pdf_path):
 
 # Create vector store from document chunks
 def create_vector_store(chunks):
-    # Using Sentence Transformers for embeddings
     embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
     vector_store = Chroma.from_documents(chunks, embeddings)
     
     return vector_store
 
-# Define the student_handbook chatbot prompt
+# Define the student handbook chatbot prompt
 STUDENT_HANDBOOK_QA_TEMPLATE = """
 You are an AI assistant with access to a Student Handbook. Your role is to answer student queries accurately and concisely, relying only on the information in the handbook. You provide guidance on policies, academic requirements, campus regulations, qualifications, skills, and other relevant topics covered in the handbook.
 
@@ -57,7 +61,7 @@ Response Guidelines:
 
 Always ensure that your answers align strictly with the handbook content and remain informative, relevant, and helpful."""
 
-# Initialize the student_handbook chatbot
+# Initialize the student handbook chatbot
 def create_student_handbook_chatbot(vector_store):
     memory = ConversationBufferMemory(
         memory_key="chat_history",
@@ -66,11 +70,10 @@ def create_student_handbook_chatbot(vector_store):
     
     qa_prompt = PromptTemplate.from_template(STUDENT_HANDBOOK_QA_TEMPLATE)
     
-    # Use Gemini for the language model
     llm = ChatGoogleGenerativeAI(
         model="gemini-2.0-flash",
         google_api_key=os.environ["GOOGLE_API_KEY"],
-        temperature=0.2  # Lower temperature for more factual responses
+        temperature=0.2
     )
     
     retriever = vector_store.as_retriever(
@@ -87,17 +90,20 @@ def create_student_handbook_chatbot(vector_store):
     
     return qa_chain
 
-# Main function to run the student_handbook chatbot
-def main():
+# Global variables to store chatbot instances and conversations
+chatbots = {}
+conversations = {}
+
+# Initialize the chatbot
+def initialize_chatbot():
     print("RAG Chatbot Initializing...")
     
-    # Get student_handbook path from user
-    # Replace this with your student_handbook path
+    # Replace with your PDF path
     pdf_path = "IITM BS Degree Programme - Student Handbook.pdf"
     
     if not os.path.exists(pdf_path):
         print(f"Error: File {pdf_path} not found.")
-        return 
+        return None
     
     print("Processing Student Handbook...")
     chunks = load_student_handbook(pdf_path)
@@ -109,20 +115,90 @@ def main():
     print("Initializing chatbot...")
     chatbot = create_student_handbook_chatbot(vector_store)
     
-    print("\nStudent Handbook Chatbot Ready! Ask questions about the student handbook (type 'exit' to end)")
-    
-    while True:
-        query = input("\nQuestion: ")
+    return chatbot
+
+# Initialize the global chatbot on startup
+global_chatbot = initialize_chatbot()
+
+# API Resources
+class ChatResource(Resource):
+    def post(self):
+        if global_chatbot is None:
+            return {"error": "Chatbot initialization failed"}, 500
         
-        if query.lower() == "exit":
-            break
-            
+        data = request.get_json()
+        query = data.get('message', '')
+        conversation_id = data.get('conversationId')
+        
+        if not conversation_id:
+            # Create a new conversation
+            conversation_id = str(uuid.uuid4())
+            conversations[conversation_id] = {
+                "id": conversation_id,
+                "title": f"Conversation {len(conversations) + 1}",
+                "messages": []
+            }
+            chatbots[conversation_id] = create_student_handbook_chatbot(global_chatbot.retriever.vectorstore)
+        
+        # Get or create the conversation chatbot
+        if conversation_id not in chatbots:
+            chatbots[conversation_id] = create_student_handbook_chatbot(global_chatbot.retriever.vectorstore)
+        
+        # Add user message to conversation history
+        user_message = {
+            "id": str(uuid.uuid4()),
+            "type": "user",
+            "text": query,
+            "timestamp": ""  # You can add timestamp if needed
+        }
+        conversations[conversation_id]["messages"].append(user_message)
+        
         try:
-            response = chatbot({"question": query})
-            print(f"\nAnswer: {response['answer']}")
+            # Get response from chatbot
+            response = chatbots[conversation_id]({"question": query})
+            answer = response['answer']
+            
+            # Add AI response to conversation history
+            ai_message = {
+                "id": str(uuid.uuid4()),
+                "type": "ai",
+                "text": answer,
+                "timestamp": ""  # You can add timestamp if needed
+            }
+            conversations[conversation_id]["messages"].append(ai_message)
+            
+            return {
+                "answer": answer,
+                "conversationId": conversation_id,
+                "message": ai_message
+            }
         except Exception as e:
             print(f"Error: {e}")
-            print("Please make sure your Google API key is set correctly in the .env file.")
+            return {"error": str(e)}, 500
 
-if __name__ == "__main__":
-    main()
+class ConversationsResource(Resource):
+    def get(self):
+        return {"conversations": list(conversations.values())}
+
+class ConversationResource(Resource):
+    def get(self, conversation_id):
+        if conversation_id in conversations:
+            return conversations[conversation_id]
+        return {"error": "Conversation not found"}, 404
+    
+    def post(self):
+        # Create a new conversation
+        conversation_id = str(uuid.uuid4())
+        conversation = {
+            "id": conversation_id,
+            "title": f"New Conversation {len(conversations) + 1}",
+            "messages": []
+        }
+        conversations[conversation_id] = conversation
+        return conversation
+
+    def delete(self, conversation_id):
+        if conversation_id in conversations:
+            del conversations[conversation_id]
+            return {"message": "Conversation deleted successfully"}
+        return {"error": "Conversation not found"}, 404

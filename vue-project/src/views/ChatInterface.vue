@@ -8,10 +8,13 @@
       <button class="new-chat-button" @click="startNewChat">
         <span class="gradient-text">New Conversation</span>
       </button>
+      <button class="new-chat-button" @click="deleteConversation">
+        <span class="gradient-text">Delete Conversation</span>
+      </button>
       
       <div class="conversation-list">
         <div v-for="(conversation, index) in conversationHistory" 
-             :key="index" 
+             :key="conversation.id" 
              @click="loadConversation(conversation)"
              :class="['conversation-item', { active: currentConversation.id === conversation.id }]">
           <span class="conversation-icon">💭</span>
@@ -29,7 +32,7 @@
             <path d="M3 12h18M3 6h18M3 18h18"/>
           </svg>
         </button>
-        <h2 class="gradient-text">{{ currentConversation.title }}</h2>
+        <h2 class="gradient-text">{{ currentConversation.title || 'Student Handbook Assistant' }}</h2>
         <div class="chat-status">
           <span class="status-indicator"></span>
           Active
@@ -38,12 +41,12 @@
 
       <!-- Messages Area -->
       <div class="chat-messages" ref="messageContainer">
-        <div v-if="currentConversation.messages.length === 0" class="welcome-message">
+        <div v-if="!currentConversation.messages || currentConversation.messages.length === 0" class="welcome-message">
           <h2>
             <span class="title-regular">Welcome to</span>
-            <span class="title-fancy">Chat</span>
+            <span class="title-fancy">Student Handbook Assistant</span>
           </h2>
-          <p>Start your conversation below</p>
+          <p>Ask me anything about the student handbook!</p>
         </div>
         
         <div v-for="message in currentConversation.messages" 
@@ -54,6 +57,16 @@
             <!-- <div class="message-time">{{ message.timestamp }}</div> -->
           </div>
         </div>
+        
+        <div v-if="isLoading" class="message ai loading">
+          <div class="message-content">
+            <div class="loader">
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Input Area -->
@@ -62,76 +75,146 @@
           <textarea 
             v-model="newMessage" 
             @keyup.enter.prevent="sendMessage"
-            placeholder="Type your message..."
+            placeholder="Ask a question about the student handbook..."
             rows="1"
             ref="messageInput"
           ></textarea>
-          <button @click="sendMessage" class="send-button" :disabled="!newMessage.trim()">
+          <button @click="sendMessage" class="send-button" :disabled="!newMessage.trim() || isLoading">
             Send
           </button>
         </div>
       </div>
     </div>
   </div>
-  <footer class="Dobby-footer">
-    Dobby is still wortking on this feature
+  <footer class="app-footer">
+    Powered by RAG Chatbot with Student Handbook
   </footer>
 </template>
 
 <script>
+import axios from 'axios';
+import { Delete } from 'lucide-vue-next';
+
 export default {
   name: 'ChatInterface',
   data() {
     return {
       isDarkMode: true,
-      messages: [],
       newMessage: '',
-      conversationHistory: [{ id: 1, title: 'New Conversation', messages: [] }],
-      currentConversation: { id: 1, title: 'New Conversation', messages: [] },
-      isSidebarHidden: false
+      conversationHistory: [],
+      currentConversation: { id: null, title: 'New Conversation', messages: [] },
+      isSidebarHidden: false,
+      isLoading: false,
+      apiBaseUrl: 'http://localhost:3000/api'  // Change this to your API base URL
     };
   },
+  mounted() {
+    this.fetchConversations();
+    this.startNewChat();
+  },
   methods: {
-    sendMessage() {
-      if (!this.newMessage.trim()) return;
+    async fetchConversations() {
+      try {
+        const response = await axios.get(`${this.apiBaseUrl}/conversations`);
+        this.conversationHistory = response.data.conversations || [];
+      } catch (error) {
+        console.error('Error fetching conversations:', error);
+      }
+    },
+    async sendMessage() {
+      if (!this.newMessage.trim() || this.isLoading) return;
       
-      this.currentConversation.messages.push({
-        id: Date.now(),
-        type: 'user',
-        text: this.newMessage,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      });
-
-      setTimeout(() => {
-        this.currentConversation.messages.push({
-          id: Date.now(),
-          type: 'ai',
-          text: 'I understand your question. Let me help you with that...',
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        });
-      }, 1000);
-
+      const userMessage = this.newMessage;
       this.newMessage = '';
+      this.isLoading = true;
+      
+      // Add user message to UI immediately
+      this.currentConversation.messages.push({
+        id: Date.now().toString(),
+        type: 'user',
+        text: userMessage,
+        timestamp: new Date().toLocaleTimeString()
+      });
+      
       this.$nextTick(() => {
         this.scrollToBottom();
       });
+      
+      try {
+        const response = await axios.post(`${this.apiBaseUrl}/chat`, {
+          message: userMessage,
+          conversationId: this.currentConversation.id
+        });
+        
+        // Update current conversation with server response
+        if (response.data.conversationId && this.currentConversation.id !== response.data.conversationId) {
+          this.currentConversation.id = response.data.conversationId;
+          
+          // Refresh conversation list
+          this.fetchConversations();
+        }
+        
+        // Add AI response to UI
+        this.currentConversation.messages.push({
+          id: response.data.message.id || Date.now().toString(),
+          type: 'ai',
+          text: response.data.answer,
+          timestamp: new Date().toLocaleTimeString()
+        });
+      } catch (error) {
+        console.error('Error sending message:', error);
+        
+        // Show error message
+        this.currentConversation.messages.push({
+          id: Date.now().toString(),
+          type: 'ai',
+          text: 'Sorry, I encountered an error. Please try again later.',
+          timestamp: new Date().toLocaleTimeString()
+        });
+      } finally {
+        this.isLoading = false;
+        this.$nextTick(() => {
+          this.scrollToBottom();
+        });
+      }
     },
     scrollToBottom() {
       const container = this.$refs.messageContainer;
       container.scrollTop = container.scrollHeight;
     },
-    loadConversation(conversation) {
-      this.currentConversation = conversation;
+    async loadConversation(conversation) {
+      try {
+        const response = await axios.get(`${this.apiBaseUrl}/conversation/${conversation.id}`);
+        this.currentConversation = response.data;
+        this.$nextTick(() => {
+          this.scrollToBottom();
+        });
+      } catch (error) {
+        console.error('Error loading conversation:', error);
+      }
     },
-    startNewChat() {
-      const newChatId = this.conversationHistory.length + 1;
-      const newChat = { 
-        id: newChatId, 
-        title: `New Conversation ${newChatId}`, 
-        messages: [] 
-      };
-      this.conversationHistory.push(newChat);
-      this.currentConversation = newChat;
+    async startNewChat() {
+      try {
+        const response = await axios.post(`${this.apiBaseUrl}/conversation`);
+        this.currentConversation = response.data;
+        this.fetchConversations();
+      } catch (error) {
+        console.error('Error creating new conversation:', error);
+        // Fallback to client-side conversation creation
+        this.currentConversation = { 
+          id: Date.now().toString(), 
+          title: `New Conversation`, 
+          messages: [] 
+        };
+      }
+    },
+    async deleteConversation(conversationId) {
+      try {
+        await axios.delete(`${this.apiBaseUrl}/conversation/${conversationId}`);
+        this.fetchConversations();
+      } catch (error) {
+        console.error('Error deleting conversation:', error);
+      }
     },
     toggleSidebar() {
       this.isSidebarHidden = !this.isSidebarHidden;
@@ -330,6 +413,33 @@ export default {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.message.loading {
+  padding: 0.5rem 1rem;
+}
+
+.loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.7);
+  animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
 .message-time {
   font-size: 0.75rem;
   margin-top: 0.5rem;
@@ -395,6 +505,11 @@ textarea:focus {
   100% { opacity: 1; }
 }
 
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0.5); }
+  40% { transform: scale(1); }
+}
+
 @keyframes grid-move {
   0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
   100% { transform: perspective(500px) rotateX(60deg) translateY(30px); }
@@ -414,15 +529,8 @@ textarea:focus {
   background: rgba(255, 255, 255, 0.1);
 }
 
-@media (max-width: 768px) {
-  .sidebar {
-    position: absolute;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.95);
-  }
-  
-/* Added Footer Styles */
-.Dobby-footer {
+/* App Footer */
+.app-footer {
   padding: 1rem;
   text-align: center;
   background: rgba(255, 255, 255, 0.05);
@@ -434,15 +542,22 @@ textarea:focus {
   z-index: 10;
 }
 
-/* Adjust chat-interface to accommodate footer */
-.chat-interface {
-  display: flex;
-  flex-direction: column;
-}
-
-.chat-messages {
-  flex: 1;
-  min-height: 0; /* This ensures proper scrolling with footer */
-}
+@media (max-width: 768px) {
+  .sidebar {
+    position: absolute;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+  }
+  
+  /* Adjust chat-interface to accommodate footer */
+  .chat-interface {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .chat-messages {
+    flex: 1;
+    min-height: 0; /* This ensures proper scrolling with footer */
+  }
 }
 </style>

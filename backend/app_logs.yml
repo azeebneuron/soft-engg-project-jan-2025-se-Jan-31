@@ -213,3 +213,28 @@
     instructor_id: 3
   event_type: get_courses
   timestamp: '2025-03-28T16:18:37.577758'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-30T02:27:41.880620'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-30T02:27:44.284375'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-30T02:27:50.162979'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-30T02:29:45.721324'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-30T02:55:58.043435'

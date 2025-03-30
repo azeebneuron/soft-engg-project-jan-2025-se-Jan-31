@@ -65,9 +65,56 @@ def create_app():
     
     return app, api
 
+def initialize_database(app):
+    """Initialize database with default roles and users if they don't exist"""
+    with app.app_context():
+        try:
+            # Create tables if they don't exist
+            print("Creating database tables if they don't exist...")
+            db.create_all()
+            
+            # Check if roles already exist
+            admin_role = user_datastore.find_role('admin')
+            
+            # If admin role doesn't exist, initialize all roles and users
+            if not admin_role:
+                print("Initializing database with default roles and users...")
+                # Create roles
+                user_datastore.find_or_create_role(name='admin', description='Administrator')
+                user_datastore.find_or_create_role(name='student', description='student')
+                user_datastore.find_or_create_role(name='instructor', description='instructor')
+                user_datastore.find_or_create_role(name='ta', description='Teaching assistant')
+                db.session.commit()
+                
+                # Create default users
+                if not user_datastore.find_user(email="admin@a.com"):
+                    admin_user = user_datastore.create_user(email="admin@a.com", password="admin", username="admin")
+                    user_datastore.add_role_to_user(admin_user, "admin")
+                
+                if not user_datastore.find_user(email="user@a.com"):
+                    student_user = user_datastore.create_user(email="user@a.com", password="user", username="user")
+                    user_datastore.add_role_to_user(student_user, "student")
+                
+                if not user_datastore.find_user(email="instructor@a.com"):
+                    instructor = user_datastore.create_user(email="instructor@a.com", password="instructor", username="instructor")
+                    user_datastore.add_role_to_user(instructor, "instructor")
+                
+                if not user_datastore.find_user(email="ta@a.com"):
+                    ta = user_datastore.create_user(email="ta@a.com", password="userta", username="ta")
+                    user_datastore.add_role_to_user(ta, "ta")
+                
+                db.session.commit()
+                print("Database initialization completed.")
+            else:
+                print("Database already contains roles. Skipping initialization.")
+        except Exception as e:
+            print(f"Error during database initialization: {e}")
+            db.session.rollback()
+
 app, api_handler = create_app()
 
-
+# Initialize the database with default roles and users
+initialize_database(app)
 
 @app.route("/hello_world")
 def hello_world():
@@ -128,9 +175,8 @@ api_handler.add_resource(PerformanceComparisonAPI, '/api/student/courses/<int:co
 from routes.admin_API.data_generation import GenerateSyntheticDataAPI
 api_handler.add_resource(GenerateSyntheticDataAPI, '/api/admin/generate-data')
 
-
+# RAG chatbot 
 from chatbot.chatbotapi import ChatResource, ConversationsResource, ConversationResource
-# Register API endpoints
 api_handler.add_resource(ChatResource, '/api/chat')
 api_handler.add_resource(ConversationsResource, '/api/conversations')
 api_handler.add_resource(ConversationResource, '/api/conversation/<string:conversation_id>', '/api/conversation')

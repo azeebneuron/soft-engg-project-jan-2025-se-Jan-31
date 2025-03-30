@@ -126,7 +126,7 @@
     </div>
 
     <footer class="dashboard-footer">
-      Made with ❤️ by Commander in Chief
+      Updated with ❤️ by Dobby The Free-Elf
     </footer>
   </div>
 </template>

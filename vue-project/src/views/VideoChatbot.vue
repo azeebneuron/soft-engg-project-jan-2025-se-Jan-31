@@ -17,7 +17,7 @@
           <button @click="loadPlaylist" class="playlist-button">Load</button>
         </div>
         
-        <!-- Playlist Selector -->
+        <!-- Playlist Selector - Fixed visibility issue -->
         <div class="playlist-selector">
           <select v-model="selectedPlaylistId" @change="loadPlaylistVideos" class="playlist-select">
             <option value="" disabled>Select a playlist</option>
@@ -59,8 +59,8 @@
           </div>
         </div>
   
-        <!-- Video URL Input -->
-        <div class="video-url-input-container" v-if="!currentVideo.videoId">
+        <!-- Video URL Input - Always visible now -->
+        <div class="video-url-input-container">
           <input 
             v-model="videoUrl" 
             placeholder="Enter YouTube video URL..." 
@@ -164,6 +164,8 @@
           console.log('User authenticated as student. Proceeding with course content loading.');
           // Proceed with loading course content
           this.fetchAvailablePlaylists();
+          // Restore session state
+          this.restoreSessionState();
         }
       },
       
@@ -185,6 +187,11 @@
             if (data.status === 'success') {
               this.availablePlaylists = data.playlists;
               console.log('Available playlists:', this.availablePlaylists);
+              
+              // If there's a stored playlist ID, select it
+              if (this.selectedPlaylistId) {
+                this.loadPlaylistVideos();
+              }
             } else {
               console.error('Error fetching playlists:', data.error);
             }
@@ -233,6 +240,9 @@
             
             this.selectedPlaylistId = data.playlist_id;
             this.playlistUrl = '';
+            
+            // Save the selected playlist ID
+            this.saveSessionState();
           } else {
             console.error('Error loading playlist:', data.error);
             alert(`Error: ${data.error}`);
@@ -262,6 +272,18 @@
                 videoId: video.video_id,
                 duration: video.duration || 'Unknown'
               }));
+              
+              // If there's a stored video ID, select it
+              if (localStorage.getItem('currentVideoId')) {
+                const savedVideoId = localStorage.getItem('currentVideoId');
+                const savedVideo = this.playlistVideos.find(v => v.id === savedVideoId);
+                if (savedVideo) {
+                  this.selectVideo(savedVideo);
+                }
+              }
+              
+              // Save the selected playlist ID
+              this.saveSessionState();
             } else {
               console.error('Error fetching playlist videos:', data.error);
               alert(`Error: ${data.error}`);
@@ -301,15 +323,22 @@
             };
             
             this.isPlaying = true;
-            this.chatMessages = [
-              {
-                id: Date.now(),
-                type: 'ai',
-                text: `You are now watching "${data.title}". Feel free to ask any questions!`,
-              }
-            ];
+            
+            // Initialize chat if there are no saved messages
+            if (!this.chatMessages.length) {
+              this.chatMessages = [
+                {
+                  id: Date.now(),
+                  type: 'ai',
+                  text: `You are now watching "${data.title}". Feel free to ask any questions!`,
+                }
+              ];
+            }
             
             this.videoUrl = '';
+            
+            // Save the current video and chat state
+            this.saveSessionState();
           } else {
             console.error('Error loading video:', data.error);
             alert(`Error: ${data.error}`);
@@ -328,18 +357,29 @@
         this.currentVideo = video;
         this.isPlaying = true;
         
-        // Reset chat messages when changing videos
-        this.chatMessages = [
-          {
-            id: Date.now(),
-            type: 'ai',
-            text: `You are now watching "${video.title}". Feel free to ask any questions!`,
-          }
-        ];
+        // Check if we have stored chat messages for this video
+        const savedChatMessages = JSON.parse(localStorage.getItem(`chatMessages_${video.id}`) || 'null');
+        
+        if (savedChatMessages && savedChatMessages.length) {
+          this.chatMessages = savedChatMessages;
+        } else {
+          // Reset chat messages when changing videos with no history
+          this.chatMessages = [
+            {
+              id: Date.now(),
+              type: 'ai',
+              text: `You are now watching "${video.title}". Feel free to ask any questions!`,
+            }
+          ];
+        }
+        
+        // Save the current video state
+        this.saveSessionState();
       },
       
       toggleSidebar() {
         this.isSidebarHidden = !this.isSidebarHidden;
+        localStorage.setItem('sidebarHidden', this.isSidebarHidden);
       },
       
       sendChatMessage() {
@@ -371,6 +411,9 @@
         this.$nextTick(() => {
           this.scrollToBottom();
         });
+        
+        // Save updated chat messages (including the loading state)
+        this.saveSessionState();
         
         // Get AI response from backend using getAuthToken
         fetch('http://127.0.0.1:3000/api/video/chat', {
@@ -404,6 +447,9 @@
               text: `Sorry, I couldn't process your question. ${data.error || 'Please try again.'}`
             });
           }
+          
+          // Save updated chat messages after response
+          this.saveSessionState();
         })
         .catch(error => {
           // Remove loading message
@@ -417,6 +463,9 @@
           });
           
           console.error('Error getting chat response:', error);
+          
+          // Save updated chat messages after error
+          this.saveSessionState();
         })
         .finally(() => {
           this.$nextTick(() => {
@@ -439,11 +488,78 @@
           const scrollHeight = textarea.scrollHeight;
           textarea.style.height = `${scrollHeight}px`;
         }
+      },
+      
+      // Store the current state in localStorage
+      saveSessionState() {
+        // Save current video
+        if (this.currentVideo.id) {
+          localStorage.setItem('currentVideoId', this.currentVideo.id);
+          localStorage.setItem('currentVideoTitle', this.currentVideo.title);
+          localStorage.setItem('currentVideoYoutubeId', this.currentVideo.videoId);
+        }
+        
+        // Save selected playlist
+        localStorage.setItem('selectedPlaylistId', this.selectedPlaylistId);
+        
+        // Save sidebar state
+        localStorage.setItem('sidebarHidden', this.isSidebarHidden);
+        
+        // Save chat messages for current video
+        if (this.currentVideo.id && this.chatMessages.length) {
+          localStorage.setItem(`chatMessages_${this.currentVideo.id}`, JSON.stringify(this.chatMessages));
+        }
+        
+        // Save play state
+        localStorage.setItem('isPlaying', this.isPlaying);
+      },
+      
+      // Restore state from localStorage
+      restoreSessionState() {
+        // Restore sidebar state
+        this.isSidebarHidden = localStorage.getItem('sidebarHidden') === 'true';
+        
+        // Restore playlist selection
+        const savedPlaylistId = localStorage.getItem('selectedPlaylistId');
+        if (savedPlaylistId) {
+          this.selectedPlaylistId = savedPlaylistId;
+        }
+        
+        // Restore current video
+        const savedVideoId = localStorage.getItem('currentVideoId');
+        const savedVideoTitle = localStorage.getItem('currentVideoTitle');
+        const savedVideoYoutubeId = localStorage.getItem('currentVideoYoutubeId');
+        
+        if (savedVideoId && savedVideoTitle && savedVideoYoutubeId) {
+          this.currentVideo = {
+            id: savedVideoId,
+            title: savedVideoTitle,
+            videoId: savedVideoYoutubeId
+          };
+          
+          // Restore chat messages for this video
+          const savedChatMessages = JSON.parse(localStorage.getItem(`chatMessages_${savedVideoId}`) || 'null');
+          if (savedChatMessages && savedChatMessages.length) {
+            this.chatMessages = savedChatMessages;
+          }
+          
+          // Restore play state
+          this.isPlaying = localStorage.getItem('isPlaying') === 'true';
+        }
       }
     },
     created() {
       // Check authentication when component is created
       this.checkAuthentication();
+    },
+    mounted() {
+      // Adjust textarea height when component mounts
+      this.adjustTextareaHeight();
+      
+      // Scroll to the bottom of chat on mount
+      this.$nextTick(() => {
+        this.scrollToBottom();
+      });
     },
     updated() {
       // Adjust textarea height when component updates
@@ -560,6 +676,8 @@
   
   .playlist-selector {
     margin: 0 1.5rem 1rem;
+    position: relative;
+    z-index: 20;
   }
   
   .playlist-select {
@@ -571,6 +689,7 @@
     color: white;
     font-size: 0.9rem;
     cursor: pointer;
+    appearance: auto;
   }
   
   .playlist-select:focus {

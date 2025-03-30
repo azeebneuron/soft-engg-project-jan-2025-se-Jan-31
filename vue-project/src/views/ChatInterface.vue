@@ -8,17 +8,22 @@
       <button class="new-chat-button" @click="startNewChat">
         <span class="gradient-text">New Conversation</span>
       </button>
-      <button class="new-chat-button" @click="deleteConversation">
-        <span class="gradient-text">Delete Conversation</span>
-      </button>
       
       <div class="conversation-list">
         <div v-for="(conversation, index) in conversationHistory" 
              :key="conversation.id" 
-             @click="loadConversation(conversation)"
-             :class="['conversation-item', { active: currentConversation.id === conversation.id }]">
-          <span class="conversation-icon">💭</span>
-          <span class="conversation-title">{{ conversation.title }}</span>
+             class="conversation-item-container">
+          <div @click="loadConversation(conversation)"
+               :class="['conversation-item', { active: currentConversation.id === conversation.id }]">
+            <span class="conversation-icon">💭</span>
+            <span class="conversation-title">{{ conversation.title }}</span>
+          </div>
+          <button class="delete-button" @click.stop="deleteConversation(conversation.id)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+              <path d="M10 11v6M14 11v6"/>
+            </svg>
+          </button>
         </div>
       </div>
     </div>
@@ -93,7 +98,6 @@
 
 <script>
 import axios from 'axios';
-import { Delete } from 'lucide-vue-next';
 
 export default {
   name: 'ChatInterface',
@@ -109,8 +113,14 @@ export default {
     };
   },
   mounted() {
+    // Check for saved conversation in localStorage
+    const savedConversationId = localStorage.getItem('currentConversationId');
+    if (savedConversationId) {
+      this.loadConversationById(savedConversationId);
+    } else {
+      this.startNewChat();
+    }
     this.fetchConversations();
-    this.startNewChat();
   },
   methods: {
     async fetchConversations() {
@@ -149,6 +159,8 @@ export default {
         // Update current conversation with server response
         if (response.data.conversationId && this.currentConversation.id !== response.data.conversationId) {
           this.currentConversation.id = response.data.conversationId;
+          // Save current conversation ID to localStorage
+          localStorage.setItem('currentConversationId', this.currentConversation.id);
           
           // Refresh conversation list
           this.fetchConversations();
@@ -186,6 +198,8 @@ export default {
       try {
         const response = await axios.get(`${this.apiBaseUrl}/conversation/${conversation.id}`);
         this.currentConversation = response.data;
+        // Save current conversation ID to localStorage
+        localStorage.setItem('currentConversationId', conversation.id);
         this.$nextTick(() => {
           this.scrollToBottom();
         });
@@ -193,10 +207,25 @@ export default {
         console.error('Error loading conversation:', error);
       }
     },
+    async loadConversationById(conversationId) {
+      try {
+        const response = await axios.get(`${this.apiBaseUrl}/conversation/${conversationId}`);
+        this.currentConversation = response.data;
+        this.$nextTick(() => {
+          this.scrollToBottom();
+        });
+      } catch (error) {
+        console.error('Error loading conversation:', error);
+        // If failed to load the saved conversation, start a new one
+        this.startNewChat();
+      }
+    },
     async startNewChat() {
       try {
         const response = await axios.post(`${this.apiBaseUrl}/conversation`);
         this.currentConversation = response.data;
+        // Save current conversation ID to localStorage
+        localStorage.setItem('currentConversationId', this.currentConversation.id);
         this.fetchConversations();
       } catch (error) {
         console.error('Error creating new conversation:', error);
@@ -206,11 +235,18 @@ export default {
           title: `New Conversation`, 
           messages: [] 
         };
+        // Save current conversation ID to localStorage
+        localStorage.setItem('currentConversationId', this.currentConversation.id);
       }
     },
     async deleteConversation(conversationId) {
       try {
         await axios.delete(`${this.apiBaseUrl}/conversation/${conversationId}`);
+        // If the deleted conversation is the current one, start a new chat
+        if (this.currentConversation.id === conversationId) {
+          localStorage.removeItem('currentConversationId');
+          this.startNewChat();
+        }
         this.fetchConversations();
       } catch (error) {
         console.error('Error deleting conversation:', error);
@@ -267,6 +303,8 @@ export default {
   width: 320px;
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  -moz-backdrop-filter: blur(10px);
   border-right: 1px solid rgba(255, 255, 255, 0.1);
   padding: 1.5rem;
   transition: all 0.3s ease;
@@ -303,6 +341,13 @@ export default {
   gap: 0.5rem;
 }
 
+.conversation-item-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
 .conversation-item {
   display: flex;
   align-items: center;
@@ -312,6 +357,7 @@ export default {
   cursor: pointer;
   transition: background-color 0.2s ease;
   background: rgba(255, 255, 255, 0.05);
+  flex: 1;
 }
 
 .conversation-item:hover {
@@ -322,6 +368,23 @@ export default {
   background: rgba(99, 102, 241, 0.2);
 }
 
+.delete-button {
+  background: rgba(255, 0, 0, 0.1);
+  border: none;
+  border-radius: 0.5rem;
+  color: white;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-button:hover {
+  background: rgba(255, 0, 0, 0.3);
+}
+
 .chat-interface {
   flex: 1;
   display: flex;
@@ -330,6 +393,8 @@ export default {
   z-index: 10;
   background: rgba(255, 255, 255, 0.02);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  -moz-backdrop-filter: blur(10px);
 }
 
 .chat-header {
@@ -343,7 +408,9 @@ export default {
 
 .gradient-text {
   background: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
+  background-clip: text;
   -webkit-background-clip: text;
+  -moz-background-clip: text;
   color: whitesmoke;
 }
 
@@ -389,7 +456,9 @@ export default {
   font-family: 'Pacifico', cursive;
   font-size: 2.5rem;
   background: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
+  background-clip: text;
   -webkit-background-clip: text;
+  -moz-background-clip: text;
   color: transparent;
 }
 
@@ -398,6 +467,8 @@ export default {
   padding: 1rem;
   border-radius: 1rem;
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  -moz-backdrop-filter: blur(10px);
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
@@ -411,6 +482,12 @@ export default {
   align-self: flex-start;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white; /* Explicit white color for Safari compatibility */
+}
+
+/* Ensure the message text is properly visible */
+.message-text {
+  color: inherit; /* This ensures message-text inherits from its parent (.message) */
 }
 
 .message.loading {
@@ -535,6 +612,8 @@ textarea:focus {
   text-align: center;
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  -moz-backdrop-filter: blur(10px);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.6);
   font-size: 0.875rem;

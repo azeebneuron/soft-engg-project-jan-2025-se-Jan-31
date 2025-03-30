@@ -238,3 +238,23 @@
     instructor_id: 3
   event_type: get_courses
   timestamp: '2025-03-30T02:55:58.043435'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-30T16:03:55.134880'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-30T16:55:30.558938'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-30T17:40:55.605085'
+- details:
+    action: fetch_all_courses
+    instructor_id: 3
+  event_type: get_courses
+  timestamp: '2025-03-30T17:42:22.987230'

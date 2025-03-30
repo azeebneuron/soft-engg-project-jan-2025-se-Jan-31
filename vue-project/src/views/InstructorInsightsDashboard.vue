@@ -16,7 +16,7 @@
 
       <!-- Loading State -->
       <div v-if="loading" class="loading-container">
-        <div class="spinner-border text-primary" role="status">
+        <div class="loading-indicator" role="status">
           <span class="visually-hidden">Loading...</span>
         </div>
         <p>Analyzing your teaching data...</p>
@@ -86,54 +86,80 @@
             </h2>
           </div>
           <div class="card-body">
-            <div v-if="insights.dashboard_data?.at_risk_students?.length" class="table-responsive">
-              <table class="dashboard-table">
-                <thead>
-                  <tr>
-                    <th>Student</th>
-                    <th>Risk Score</th>
-                    <th>Current Trimester</th>
-                    <th>Key Factors</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="student in insights.dashboard_data.at_risk_students" :key="student.student_id">
-                    <td>{{ student.name }}</td>
-                    <td>
-                      <div class="risk-score">
-                        <div class="progress">
-                          <div
-                            class="progress-bar"
-                            :class="riskScoreClass(student.risk_score)"
-                            role="progressbar"
-                            :style="{ width: `${student.risk_score * 100}%` }"
-                            :aria-valuenow="student.risk_score * 100"
-                            aria-valuemin="0"
-                            aria-valuemax="100"
-                          ></div>
+            <div v-if="insights.dashboard_data?.at_risk_students?.length" class="table-section">
+              <div class="table-container">
+                <table class="dashboard-table">
+                  <thead>
+                    <tr>
+                      <th>Student</th>
+                      <th>Risk Score</th>
+                      <th>Current Trimester</th>
+                      <th>Key Factors</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="student in paginatedAtRiskStudents" :key="student.student_id">
+                      <td>{{ student.name }}</td>
+                      <td>
+                        <div class="risk-score">
+                          <div class="progress">
+                            <div
+                              class="progress-bar"
+                              :class="riskScoreClass(student.risk_score)"
+                              role="progressbar"
+                              :style="{ width: `${student.risk_score * 100}%` }"
+                              :aria-valuenow="student.risk_score * 100"
+                              aria-valuemin="0"
+                              aria-valuemax="100"
+                            ></div>
+                          </div>
+                          <span>{{ (student.risk_score * 100).toFixed(0) }}%</span>
                         </div>
-                        <span>{{ (student.risk_score * 100).toFixed(0) }}%</span>
-                      </div>
-                    </td>
-                    <td>{{ student.current_trimester }}</td>
-                    <td>
-                      <span
-                        v-for="(factor, index) in student.key_factors"
-                        :key="index"
-                        class="factor-badge"
-                      >
-                        {{ factor }}
-                      </span>
-                    </td>
-                    <td>
-                      <button class="action-btn-small">
-                        <i class="fas fa-envelope me-1"></i> Contact
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                      </td>
+                      <td>{{ student.current_trimester }}</td>
+                      <td>
+                        <span
+                          v-for="(factor, index) in student.key_factors"
+                          :key="index"
+                          class="factor-badge"
+                        >
+                          {{ factor }}
+                        </span>
+                      </td>
+                      <td>
+                        <button class="action-btn-small">
+                          <i class="fas fa-envelope me-1"></i> Contact
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              
+              <div class="pagination-controls">
+                <button 
+                  class="pagination-btn" 
+                  :disabled="atRiskCurrentPage === 1"
+                  @click="atRiskCurrentPage--"
+                >
+                  <i class="fas fa-chevron-left"></i>
+                </button>
+                <span>Page {{ atRiskCurrentPage }} of {{ totalAtRiskPages }}</span>
+                <button 
+                  class="pagination-btn" 
+                  :disabled="atRiskCurrentPage === totalAtRiskPages"
+                  @click="atRiskCurrentPage++"
+                >
+                  <i class="fas fa-chevron-right"></i>
+                </button>
+              </div>
+              
+              <!-- Risk Distribution Chart -->
+              <div class="chart-container">
+                <h3 class="chart-title">Risk Factor Distribution</h3>
+                <div class="chart-wrapper" ref="riskFactorChart"></div>
+              </div>
             </div>
             <div v-else class="placeholder-content">
               <p>No at-risk students identified at this time.</p>
@@ -149,39 +175,65 @@
             </h2>
           </div>
           <div class="card-body">
-            <div v-if="Object.keys(insights.dashboard_data?.courses || {}).length" class="table-responsive">
-              <table class="dashboard-table">
-                <thead>
-                  <tr>
-                    <th>Course</th>
-                    <th>Pass Rate</th>
-                    <th>Avg. Quiz 1</th>
-                    <th>Avg. Quiz 2</th>
-                    <th>Avg. Endterm</th>
-                    <th>Attendance</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(course, code) in insights.dashboard_data.courses" :key="code">
-                    <td>{{ course.course_name }}</td>
-                    <td>
-                      <span :class="passRateClass(course.pass_rate)">
-                        {{ course.pass_rate ? course.pass_rate.toFixed(1) + '%' : 'N/A' }}
-                      </span>
-                    </td>
-                    <td>{{ course.avg_quiz1 ? course.avg_quiz1.toFixed(1) : 'N/A' }}</td>
-                    <td>{{ course.avg_quiz2 ? course.avg_quiz2.toFixed(1) : 'N/A' }}</td>
-                    <td>{{ course.avg_endterm ? course.avg_endterm.toFixed(1) : 'N/A' }}</td>
-                    <td>{{ course.avg_attendance ? course.avg_attendance.toFixed(1) + '%' : 'N/A' }}</td>
-                    <td>
-                      <button class="action-btn-small" @click="viewCourseDetails(code)">
-                        <i class="fas fa-chart-bar me-1"></i> Details
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+            <div v-if="Object.keys(insights.dashboard_data?.courses || {}).length" class="table-section">
+              <div class="table-container">
+                <table class="dashboard-table">
+                  <thead>
+                    <tr>
+                      <th>Course</th>
+                      <th>Pass Rate</th>
+                      <th>Avg. Quiz 1</th>
+                      <th>Avg. Quiz 2</th>
+                      <th>Avg. Endterm</th>
+                      <th>Attendance</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="course in paginatedCourses" :key="course.code">
+                      <td>{{ course.course_name }}</td>
+                      <td>
+                        <span :class="passRateClass(course.pass_rate)">
+                          {{ course.pass_rate ? course.pass_rate.toFixed(1) + '%' : 'N/A' }}
+                        </span>
+                      </td>
+                      <td>{{ course.avg_quiz1 ? course.avg_quiz1.toFixed(1) : 'N/A' }}</td>
+                      <td>{{ course.avg_quiz2 ? course.avg_quiz2.toFixed(1) : 'N/A' }}</td>
+                      <td>{{ course.avg_endterm ? course.avg_endterm.toFixed(1) : 'N/A' }}</td>
+                      <td>{{ course.avg_attendance ? course.avg_attendance.toFixed(1) + '%' : 'N/A' }}</td>
+                      <td>
+                        <button class="action-btn-small" @click="viewCourseDetails(course.code)">
+                          <i class="fas fa-chart-bar me-1"></i> Details
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              
+              <div class="pagination-controls">
+                <button 
+                  class="pagination-btn" 
+                  :disabled="coursesCurrentPage === 1"
+                  @click="coursesCurrentPage--"
+                >
+                  <i class="fas fa-chevron-left"></i>
+                </button>
+                <span>Page {{ coursesCurrentPage }} of {{ totalCoursesPages }}</span>
+                <button 
+                  class="pagination-btn" 
+                  :disabled="coursesCurrentPage === totalCoursesPages"
+                  @click="coursesCurrentPage++"
+                >
+                  <i class="fas fa-chevron-right"></i>
+                </button>
+              </div>
+              
+              <!-- Course Performance Chart -->
+              <div class="chart-container">
+                <h3 class="chart-title">Course Performance Metrics</h3>
+                <div class="chart-wrapper" ref="coursePerformanceChart"></div>
+              </div>
             </div>
             <div v-else class="placeholder-content">
               <p>No course data available.</p>
@@ -199,28 +251,72 @@
 
 <script>
 import axios from 'axios';
+import * as d3 from 'd3';
 
 export default {
   name: 'InstructorInsightsDashboard',
   data() {
     return {
       insights: {
-        dashboard_data: {},
+        dashboard_data: {
+          courses: {},
+          at_risk_students: []
+        },
         narrative: ''
       },
       loading: true,
       error: null,
-      isDarkMode: true
+      isDarkMode: true,
+      itemsPerPage: 10,
+      atRiskCurrentPage: 1,
+      coursesCurrentPage: 1
     };
   },
   computed: {
     formattedNarrative() {
       if (!this.insights.narrative) return [];
       return this.insights.narrative.split('\n\n').filter(p => p.trim());
+    },
+    
+    // Pagination for at-risk students
+    paginatedAtRiskStudents() {
+      if (!this.insights.dashboard_data?.at_risk_students) return [];
+      
+      const start = (this.atRiskCurrentPage - 1) * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+      
+      return this.insights.dashboard_data.at_risk_students.slice(start, end);
+    },
+    
+    totalAtRiskPages() {
+      if (!this.insights.dashboard_data?.at_risk_students) return 1;
+      return Math.ceil(this.insights.dashboard_data.at_risk_students.length / this.itemsPerPage);
+    },
+    
+    // Pagination for courses
+    paginatedCourses() {
+      if (!this.insights.dashboard_data?.courses) return [];
+      
+      const coursesArray = Object.entries(this.insights.dashboard_data.courses).map(([code, data]) => {
+        return { code, ...data };
+      });
+      
+      const start = (this.coursesCurrentPage - 1) * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+      
+      return coursesArray.slice(start, end);
+    },
+    
+    totalCoursesPages() {
+      if (!this.insights.dashboard_data?.courses) return 1;
+      return Math.ceil(Object.keys(this.insights.dashboard_data.courses).length / this.itemsPerPage);
     }
   },
   mounted() {
     this.fetchInsights();
+  },
+  updated() {
+    this.renderCharts();
   },
   methods: {
     async fetchInsights() {
@@ -244,6 +340,15 @@ export default {
         });
         
         this.insights = response.data;
+        
+        // Reset pagination when data changes
+        this.atRiskCurrentPage = 1;
+        this.coursesCurrentPage = 1;
+        
+        // Render charts after data is loaded
+        this.$nextTick(() => {
+          this.renderCharts();
+        });
 
       } catch (error) {
         console.error('Error fetching instructor insights:', error);
@@ -290,6 +395,362 @@ export default {
       if (rate < 75) return 'text-danger';
       if (rate < 90) return 'text-warning';
       return 'text-success';
+    },
+    
+    renderCharts() {
+      if (this.loading || this.error) return;
+      
+      // Only render if we have data and the DOM elements exist
+      if (this.$refs.riskFactorChart && this.insights.dashboard_data?.at_risk_students?.length > 0) {
+        this.renderRiskFactorChart();
+      }
+      
+      if (this.$refs.coursePerformanceChart && Object.keys(this.insights.dashboard_data?.courses || {}).length > 0) {
+        this.renderCoursePerformanceChart();
+      }
+    },
+    
+    renderRiskFactorChart() {
+      // Clear previous chart
+      d3.select(this.$refs.riskFactorChart).selectAll("*").remove();
+      
+      const factors = {};
+      
+      // Count occurrence of each risk factor
+      this.insights.dashboard_data.at_risk_students.forEach(student => {
+        student.key_factors.forEach(factor => {
+          factors[factor] = (factors[factor] || 0) + 1;
+        });
+      });
+      
+      // Convert to array for D3
+      const data = Object.entries(factors).map(([name, count]) => ({ name, count }));
+      data.sort((a, b) => b.count - a.count);
+      
+      // Set up dimensions with more padding for labels
+      const margin = { top: 30, right: 40, bottom: 90, left: 60 };
+      const width = this.$refs.riskFactorChart.clientWidth - margin.left - margin.right;
+      const height = 300 - margin.top - margin.bottom;
+      
+      // Create SVG
+      const svg = d3.select(this.$refs.riskFactorChart)
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+      
+      // X scale
+      const x = d3.scaleBand()
+        .domain(data.map(d => d.name))
+        .range([0, width])
+        .padding(0.4);
+      
+      // Y scale with more padding at the top
+      const y = d3.scaleLinear()
+        .domain([0, d3.max(data, d => d.count) * 1.1])
+        .range([height, 0]);
+      
+      // Color scale using a harmonious palette
+      const colorPalette = ['#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe', '#4f46e5', '#818cf8', '#38bdf8'];
+      const color = d3.scaleOrdinal()
+        .domain(data.map(d => d.name))
+        .range(colorPalette);
+      
+      // Add X axis with rotated labels for better fit
+      svg.append("g")
+        .attr("transform", `translate(0,${height})`)
+        .call(d3.axisBottom(x))
+        .selectAll("text")
+        .attr("transform", "translate(-10,5)rotate(-45)")
+        .style("text-anchor", "end")
+        .style("font-size", "11px")
+        .style("font-weight", "bold");
+      
+      // Add X axis label
+      svg.append("text")
+        .attr("text-anchor", "middle")
+        .attr("x", width / 2)
+        .attr("y", height + margin.bottom - 10)
+        .style("font-size", "12px")
+        .style("font-weight", "bold")
+        .text("Risk Factors");
+      
+      // Add Y axis with better spacing
+      svg.append("g")
+        .call(d3.axisLeft(y).ticks(5).tickFormat(d => d))
+        .selectAll("text")
+        .style("font-size", "11px");
+      
+      // Add Y axis label
+      svg.append("text")
+        .attr("text-anchor", "middle")
+        .attr("transform", "rotate(-90)")
+        .attr("y", -margin.left + 15)
+        .attr("x", -height / 2)
+        .style("font-size", "12px")
+        .style("font-weight", "bold")
+        .text("Number of Students");
+      
+      // Create gradient for bars
+      const defs = svg.append("defs");
+      data.forEach((d, i) => {
+        const gradientId = `bar-gradient-${i}`;
+        const gradient = defs.append("linearGradient")
+          .attr("id", gradientId)
+          .attr("x1", "0%")
+          .attr("y1", "0%")
+          .attr("x2", "0%")
+          .attr("y2", "100%");
+          
+        gradient.append("stop")
+          .attr("offset", "0%")
+          .attr("stop-color", d3.rgb(color(d.name)).brighter(0.5));
+          
+        gradient.append("stop")
+          .attr("offset", "100%")
+          .attr("stop-color", color(d.name));
+      });
+      
+      // Create bars with rounded corners and gradients
+      svg.selectAll(".bar")
+        .data(data)
+        .enter()
+        .append("rect")
+        .attr("class", "bar")
+        .attr("x", d => x(d.name))
+        .attr("width", x.bandwidth())
+        .attr("y", d => y(d.count))
+        .attr("height", d => height - y(d.count))
+        .attr("rx", 4)
+        .attr("ry", 4)
+        .attr("fill", (d, i) => `url(#bar-gradient-${i})`)
+        .style("filter", "drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.2))");
+      
+      // Add value labels on top of bars
+      svg.selectAll(".bar-label")
+        .data(data)
+        .enter()
+        .append("text")
+        .attr("class", "bar-label")
+        .attr("x", d => x(d.name) + x.bandwidth() / 2)
+        .attr("y", d => y(d.count) - 5)
+        .attr("text-anchor", "middle")
+        .style("font-size", "10px")
+        .style("font-weight", "bold")
+        .text(d => d.count);
+      
+      // Add title
+      svg.append("text")
+        .attr("x", width / 2)
+        .attr("y", -10)
+        .attr("text-anchor", "middle")
+        .style("font-size", "14px")
+        .style("font-weight", "bold")
+        .text("Distribution of Risk Factors");
+    },
+    
+    renderCoursePerformanceChart() {
+      // Clear previous chart
+      d3.select(this.$refs.coursePerformanceChart).selectAll("*").remove();
+      
+      // Convert course data to array
+      const courseData = Object.entries(this.insights.dashboard_data.courses).map(([code, data]) => {
+        return { 
+          code, 
+          name: data.course_name,
+          metrics: [
+            { name: "Pass Rate", value: data.pass_rate || 0 },
+            { name: "Attendance", value: data.avg_attendance || 0 }
+          ]
+        };
+      });
+      
+      // Limit to top 6 courses for clarity
+      const topCourses = courseData.slice(0, 6);
+      
+      // Set up dimensions with more padding for labels
+      const margin = { top: 40, right: 150, bottom: 60, left: 70 };
+      const width = this.$refs.coursePerformanceChart.clientWidth - margin.left - margin.right;
+      const height = 300 - margin.top - margin.bottom;
+      
+      // Create SVG
+      const svg = d3.select(this.$refs.coursePerformanceChart)
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+      
+      // Define metrics to display with nicer colors
+      const metrics = ["Pass Rate", "Attendance"];
+      
+      // Color palette that is more harmonious
+      const colorPalette = {
+        "Pass Rate": "#3b82f6",  // Blue
+        "Attendance": "#10b981"  // Green
+      };
+      
+      // Set up scales
+      const x = d3.scaleBand()
+        .domain(topCourses.map(d => d.name))
+        .range([0, width])
+        .padding(0.1);
+      
+      const y = d3.scaleLinear()
+        .domain([0, 100])
+        .range([height, 0]);
+      
+      // Add smooth curve between points
+      const line = d3.line()
+        .x(d => x(d.course) + x.bandwidth() / 2)
+        .y(d => y(d.value))
+        .curve(d3.curveMonotoneX);  // Smoother curve
+      
+      // Add grid lines for better readability
+      svg.append("g")
+        .attr("class", "grid")
+        .call(d3.axisLeft(y)
+          .ticks(5)
+          .tickSize(-width)
+          .tickFormat("")
+        )
+        .style("stroke", "rgba(255, 255, 255, 0.1)");
+      
+      // Create lines for each metric with improved styling
+      metrics.forEach(metric => {
+        const metricData = topCourses.map(course => {
+          const metricObj = course.metrics.find(m => m.name === metric);
+          return {
+            course: course.name,
+            value: metricObj ? metricObj.value : 0
+          };
+        });
+        
+        // Add gradient for line
+        const gradientId = `line-gradient-${metric.replace(/\s+/g, '-')}`;
+        const gradient = svg.append("linearGradient")
+          .attr("id", gradientId)
+          .attr("gradientUnits", "userSpaceOnUse")
+          .attr("x1", 0)
+          .attr("y1", height)
+          .attr("x2", 0)
+          .attr("y2", 0);
+          
+        gradient.append("stop")
+          .attr("offset", "0%")
+          .attr("stop-color", colorPalette[metric])
+          .attr("stop-opacity", 0.5);
+          
+        gradient.append("stop")
+          .attr("offset", "100%")
+          .attr("stop-color", colorPalette[metric]);
+        
+        // Draw line with better styling
+        svg.append("path")
+          .datum(metricData)
+          .attr("fill", "none")
+          .attr("stroke", colorPalette[metric])
+          .attr("stroke-width", 3)
+          .attr("stroke-linecap", "round")
+          .attr("stroke-linejoin", "round")
+          .style("filter", "drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.2))")
+          .attr("d", line);
+        
+        // Add dots with improved styling
+        svg.selectAll(`.dot-${metric.replace(/\s+/g, '-')}`)
+          .data(metricData)
+          .enter()
+          .append("circle")
+          .attr("class", `dot-${metric.replace(/\s+/g, '-')}`)
+          .attr("cx", d => x(d.course) + x.bandwidth() / 2)
+          .attr("cy", d => y(d.value))
+          .attr("r", 6)
+          .attr("fill", "#fff")  // White center
+          .attr("stroke", colorPalette[metric])
+          .attr("stroke-width", 3)
+          .style("filter", "drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.1))");
+        
+        // Add value labels above points
+        svg.selectAll(`.value-${metric.replace(/\s+/g, '-')}`)
+          .data(metricData)
+          .enter()
+          .append("text")
+          .attr("class", `value-${metric.replace(/\s+/g, '-')}`)
+          .attr("x", d => x(d.course) + x.bandwidth() / 2)
+          .attr("y", d => y(d.value) - 10)
+          .attr("text-anchor", "middle")
+          .style("font-size", "10px")
+          .style("font-weight", "bold")
+          .text(d => `${d.value.toFixed(0)}%`);
+      });
+      
+      // Add X axis with angled labels for better fit
+      svg.append("g")
+        .attr("transform", `translate(0,${height})`)
+        .call(d3.axisBottom(x))
+        .selectAll("text")
+        .attr("transform", "translate(-10,5)rotate(-40)")
+        .style("text-anchor", "end")
+        .style("font-size", "11px");
+      
+      // Add X axis label
+      svg.append("text")
+        .attr("text-anchor", "middle")
+        .attr("x", width / 2)
+        .attr("y", height + margin.bottom - 10)
+        .style("font-size", "12px")
+        .style("font-weight", "bold")
+        .text("Courses");
+      
+      // Add Y axis with better formatting
+      svg.append("g")
+        .call(d3.axisLeft(y).ticks(5).tickFormat(d => d + "%"))
+        .selectAll("text")
+        .style("font-size", "11px");
+      
+      // Add Y axis label
+      svg.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", -margin.left + 20)
+        .attr("x", -height / 2)
+        .attr("text-anchor", "middle")
+        .style("font-size", "12px")
+        .style("font-weight", "bold")
+        .text("Percentage (%)");
+      
+      // Add chart title
+      svg.append("text")
+        .attr("x", width / 2)
+        .attr("y", -20)
+        .attr("text-anchor", "middle")
+        .style("font-size", "14px")
+        .style("font-weight", "bold")
+        .text("Course Performance Comparison");
+      
+      // Add more elegant legend
+      const legend = svg.append("g")
+        .attr("transform", `translate(${width + 20}, 10)`);
+      
+      metrics.forEach((metric, i) => {
+        const legendRow = legend.append("g")
+          .attr("transform", `translate(0, ${i * 25})`);
+        
+        // Legend color box with rounded corners
+        legendRow.append("rect")
+          .attr("width", 12)
+          .attr("height", 12)
+          .attr("rx", 3)
+          .attr("ry", 3)
+          .attr("fill", colorPalette[metric]);
+        
+        // Legend text
+        legendRow.append("text")
+          .attr("x", 20)
+          .attr("y", 9)
+          .text(metric)
+          .style("font-size", "12px");
+      });
     }
   }
 };
@@ -484,11 +945,21 @@ export default {
   color: var(--text-secondary);
 }
 
-/* Tables */
-.table-responsive {
-  overflow-x: auto;
+/* Table Section */
+.table-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
+.table-container {
+  max-height: 400px;
+  overflow-y: auto;
+  border-radius: 0.5rem;
+  border: 1px solid var(--card-border);
+}
+
+/* Tables */
 .dashboard-table {
   width: 100%;
   border-collapse: collapse;
@@ -502,134 +973,248 @@ export default {
 }
 
 .dashboard-table th {
+  position: sticky;
+  top: 0;
+  background: var(--card-bg);
   font-weight: bold;
   color: var(--text-secondary);
+  z-index: 10;
 }
 
 .dashboard-table tr:hover {
   background: var(--item-bg);
 }
 
-/* Risk Score */
-.risk-score {
+/* Pagination Controls */
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin: 0.5rem 0;
+}
+
+.pagination-btn {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: none;
+  background-color: var(--item-bg);
+  color: var(--text);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+
+.pagination-btn:hover {
+background-color: var(--primary);
+color: white;
+}
+
+.pagination-btn:disabled {
+opacity: 0.5;
+cursor: not-allowed;
+}
+
+/* Risk Score */
+.risk-score {
+display: flex;
+align-items: center;
+gap: 0.5rem;
 }
 
 .progress {
-  flex-grow: 1;
-  height: 8px;
-  background-color: var(--item-bg);
-  border-radius: 4px;
-  overflow: hidden;
+flex: 1;
+height: 8px;
+background-color: var(--item-bg);
+border-radius: 4px;
+overflow: hidden;
 }
 
 .progress-bar {
-  height: 100%;
+height: 100%;
+border-radius: 4px;
 }
 
 .bg-danger {
-  background-color: var(--danger);
+background-color: var(--danger);
 }
 
 .bg-warning {
-  background-color: var(--warning);
+background-color: var(--warning);
 }
 
 .bg-success {
-  background-color: var(--success);
+background-color: var(--success);
 }
 
 .bg-secondary {
-  background-color: var(--text-secondary);
+background-color: var(--text-secondary);
 }
 
+/* Badges */
+.factor-badge {
+display: inline-block;
+padding: 0.25rem 0.5rem;
+margin: 0.25rem;
+font-size: 0.8rem;
+background-color: var(--item-bg);
+border-radius: 0.5rem;
+color: var(--text-secondary);
+}
+
+/* Text Colors */
 .text-danger {
-  color: var(--danger);
+color: var(--danger);
 }
 
 .text-warning {
-  color: var(--warning);
+color: var(--warning);
 }
 
 .text-success {
-  color: var(--success);
-}
-
-/* Badges for factors */
-.factor-badge {
-  display: inline-block;
-  padding: 0.25rem 0.5rem;
-  margin: 0.25rem;
-  background-color: rgba(245, 158, 11, 0.2);
-  color: var(--warning);
-  border-radius: 0.25rem;
-  font-size: 0.8rem;
+color: var(--success);
 }
 
 /* Buttons */
 .action-btn {
-  padding: 0.5rem 1.5rem;
-  background: var(--primary-gradient);
-  border: none;
-  border-radius: 0.5rem;
-  color: white;
-  cursor: pointer;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  transition: transform 0.2s, box-shadow 0.2s;
+display: flex;
+align-items: center;
+padding: 0.5rem 1rem;
+background: var(--primary-gradient);
+color: white;
+border: none;
+border-radius: 0.5rem;
+cursor: pointer;
+font-weight: bold;
+transition: opacity 0.2s;
 }
 
 .action-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+opacity: 0.9;
 }
 
 .action-btn-small {
-  padding: 0.5rem 1rem;
-  background-color: rgba(99, 102, 241, 0.2);
-  border: none;
-  border-radius: 0.5rem;
-  color: var(--primary);
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background-color 0.2s;
+padding: 0.375rem 0.75rem;
+background: var(--primary);
+color: white;
+border: none;
+border-radius: 0.5rem;
+font-size: 0.875rem;
+cursor: pointer;
+transition: opacity 0.2s;
 }
 
 .action-btn-small:hover {
-  background-color: rgba(99, 102, 241, 0.3);
+opacity: 0.9;
+}
+
+/* Charts */
+.chart-container {
+margin-top: 1.5rem;
+}
+
+.chart-title {
+font-size: 1.1rem;
+margin-bottom: 1rem;
+color: var(--text);
+}
+
+.chart-wrapper {
+width: 100%;
+height: 300px;
+background: var(--item-bg);
+border-radius: 0.5rem;
+padding: 1rem;
 }
 
 /* Footer */
 .dashboard-footer {
-  text-align: center;
-  padding: 2rem 0 1rem;
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  margin-top: 2rem;
+text-align: center;
+padding: 2rem 0;
+margin-top: 2rem;
+font-size: 0.9rem;
+color: var(--text-secondary);
 }
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {
-  .dashboard-container {
-    padding: 1rem;
-  }
+.dashboard-container {
+  padding: 1rem;
+}
 
-  .dashboard-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
+.dashboard-header {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+}
 
-  .header-actions {
-    width: 100%;
-  }
+.stats-grid {
+  grid-template-columns: 1fr;
+}
 
-  .action-btn {
-    width: 100%;
-    justify-content: center;
-  }
+.dashboard-table th,
+.dashboard-table td {
+  padding: 0.75rem 0.5rem;
+  font-size: 0.9rem;
+}
+
+.card-header {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+}
+
+/* Additional Improvements */
+.header-actions {
+display: flex;
+gap: 0.5rem;
+}
+
+.me-1 {
+margin-right: 0.25rem;
+}
+
+.me-2 {
+margin-right: 0.5rem;
+}
+
+/* Scrollbar Styling */
+.table-container::-webkit-scrollbar {
+width: 8px;
+height: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+background: var(--item-bg);
+border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+background: var(--text-secondary);
+border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+background: var(--primary);
+}
+
+/* Add animation for loading spinner */
+@keyframes spin {
+0% { transform: rotate(0deg); }
+100% { transform: rotate(360deg); }
+}
+
+.spinner-border {
+animation: spin 1s linear infinite;
+}
+
+/* Transitions for better UX */
+.stat-card, .dashboard-card, .action-btn, .action-btn-small, .pagination-btn {
+transition: all 0.2s ease-in-out;
 }
 </style>

@@ -8,7 +8,7 @@ from data_analysis import PerformanceAnalytics
 from llm_integration import NarrativeGenerator
 
 # Initialize the analytics and narrative generator
-analytics = PerformanceAnalytics(data_path='data')
+analytics = PerformanceAnalytics(data_path='/Users/sambhavjha/soft-engg-project-jan-2025-se-Jan-31/backend/data')
 narrative_generator = NarrativeGenerator()
 
 class StudentInsightAPI(Resource):

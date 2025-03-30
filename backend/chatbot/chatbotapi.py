@@ -72,7 +72,7 @@ def create_student_handbook_chatbot(vector_store):
     
     llm = ChatGoogleGenerativeAI(
         model="gemini-2.0-flash",
-        google_api_key=os.environ["GOOGLE_API_KEY"],
+        google_api_key=os.environ["GEMINI_API_KEY"],
         temperature=0.2
     )
     
@@ -99,7 +99,7 @@ def initialize_chatbot():
     print("RAG Chatbot Initializing...")
     
     # Replace with your PDF path
-    pdf_path = "IITM BS Degree Programme - Student Handbook.pdf"
+    pdf_path = "/Users/sambhavjha/soft-engg-project-jan-2025-se-Jan-31/backend/chatbot/IITM BS Degree Programme - Student Handbook.pdf"
     
     if not os.path.exists(pdf_path):
         print(f"Error: File {pdf_path} not found.")

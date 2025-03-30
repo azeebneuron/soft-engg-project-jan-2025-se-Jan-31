@@ -2,6 +2,7 @@ from flask import request, jsonify
 from flask_restful import Resource
 from flask_security import auth_required, current_user
 import json
+import numpy as np
 
 # Import the analytics and narrative generator
 from data_analysis import PerformanceAnalytics
@@ -24,18 +25,27 @@ class StudentInsightAPI(Resource):
             return {'message': 'Access denied. Student role required.'}, 403
         
         # Get student ID from the authenticated user
-        student_id = current_user.id  # This would come from your user model
-        
+        #student_id = current_user.id  # This would come from your user model
+        student_id = "DS006"        
         try:
-            # Get performance data for the student
             student_data = analytics.get_student_performance(student_id)
             
-            # Generate narrative
-            narrative = narrative_generator.generate_student_narrative(student_data)
+            # Clean NaN values
+            def clean_nans(data):
+                if isinstance(data, dict):
+                    return {k: clean_nans(v) for k, v in data.items()}
+                elif isinstance(data, list):
+                    return [clean_nans(item) for item in data]
+                elif isinstance(data, float) and np.isnan(data):
+                    return None
+                return data
             
-            # Return combined data
+            cleaned_data = clean_nans(student_data)
+            
+            narrative = narrative_generator.generate_student_narrative(cleaned_data)
+            
             return {
-                'student_data': student_data,
+                'student_data': cleaned_data,
                 'narrative': narrative
             }, 200
             

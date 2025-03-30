@@ -2,13 +2,16 @@
   <div :class="isDarkMode ? 'dark-mode' : 'light-mode'" class="dashboard-container">
     <div class="dashboard-content">
       <!-- Welcome Section -->
-      <header class="dashboard-header">
-        <h1 class="dashboard-title">
-          <span class="title-regular">Welcome,</span>
-          <span class="title-fancy">Admin</span>
-        </h1>
-        <p class="dashboard-subtitle">Manage your institution efficiently</p>
-      </header>
+      <div class="header-content">
+        <div class="title-section">
+          <h1 class="dashboard-title">
+            <span class="title-regular">Welcome,</span>
+            <span class="title-fancy">Admin</span>
+          </h1>
+          <p class="dashboard-subtitle">Manage your institution efficiently</p>
+        </div>
+        <button @click="logoutUser" class="primary-btn">Logout</button>
+      </div>
 
       <!-- Quick Stats -->
       <div class="stats-grid">
@@ -48,16 +51,16 @@
                 <p>{{ student.email }}</p>
               </div>
               <div class="user-actions">
-                <button 
-                  v-if="!student.active" 
-                  class="btn gradient-btn" 
+                <button
+                  v-if="!student.active"
+                  class="btn gradient-btn"
                   @click="activateUser(student.id)"
                 >
                   Activate
                 </button>
-                <button 
-                  v-else 
-                  class="btn btn-delete" 
+                <button
+                  v-else
+                  class="btn btn-delete"
                   @click="deactivateUser(student.id)"
                 >
                   Deactivate
@@ -78,7 +81,7 @@
                 <h4>{{ instructor.username || instructor.email }}</h4>
                 <p>{{ instructor.email }}</p>
                 <p style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-secondary-dark);">
-                  Courses: 
+                  Courses:
                   <span v-if="instructor.courses.length === 0">No courses assigned</span>
                   <span v-else>
                     {{ instructor.courses.map(course => course.name).join(', ') }}
@@ -86,22 +89,22 @@
                 </p>
               </div>
               <div class="user-actions">
-                <button 
-                  class="btn gradient-btn" 
+                <button
+                  class="btn gradient-btn"
                   @click="openCourseAssignModal(instructor.id)"
                 >
                   Assign Course
                 </button>
-                <button 
-                  v-if="!instructor.active" 
-                  class="btn gradient-btn" 
+                <button
+                  v-if="!instructor.active"
+                  class="btn gradient-btn"
                   @click="activateUser(instructor.id)"
                 >
                   Activate
                 </button>
-                <button 
-                  v-else 
-                  class="btn btn-delete" 
+                <button
+                  v-else
+                  class="btn btn-delete"
                   @click="deactivateUser(instructor.id)"
                 >
                   Deactivate
@@ -134,8 +137,8 @@
           border: 1px solid rgba(255, 255, 255, 0.1);
         ">
           <h3 style="margin-bottom: 1rem; color: var(--text-dark);">Assign Course to Instructor</h3>
-          <select 
-            v-model="selectedCourse" 
+          <select
+            v-model="selectedCourse"
             style="
               width: 100%;
               padding: 0.5rem;
@@ -150,15 +153,15 @@
             </option>
           </select>
           <div style="display: flex; justify-content: flex-end;">
-            <button 
-              @click="assignCourseToInstructor" 
+            <button
+              @click="assignCourseToInstructor"
               class="btn gradient-btn"
               style="margin-right: 1rem;"
             >
               Assign
             </button>
-            <button 
-              @click="showCourseAssignModal = false" 
+            <button
+              @click="showCourseAssignModal = false"
               class="btn btn-delete"
             >
               Cancel
@@ -193,26 +196,33 @@ export default {
     }
   },
   methods: {
+    logoutUser() {
+      // Remove the authentication token
+      localStorage.removeItem("authToken");
+
+      // Redirect to sign-in page with a success message
+      this.$router.push({ path: "/signin", query: { message: "logged_out" } });
+    },
     async fetchUsers() {
       try {
         const response = await axios.get('http://127.0.0.1:3000/api/users', {
           headers: { 'Authorization': ` ${this.getAuthToken()}` }
         });
-        
+
         // Separate students and instructors
-        this.students = response.data.filter(user => 
+        this.students = response.data.filter(user =>
           user.roles.some(role => role.name === 'student')
         );
-        this.instructors = response.data.filter(user => 
+        this.instructors = response.data.filter(user =>
           user.roles.some(role => role.name === 'instructor')
         );
-        
+
         this.totalUsers = response.data.length;
       } catch (error) {
         console.error('Error fetching users:', error);
       }
     },
-    
+
     async fetchCourses() {
       try {
         const response = await axios.get('http://127.0.0.1:3000/api/courses', {
@@ -224,10 +234,10 @@ export default {
         console.error('Error fetching courses:', error);
       }
     },
-    
+
     async deactivateUser(userId) {
       try {
-        await axios.post('http://127.0.0.1:3000/api/user/deactivate', 
+        await axios.post('http://127.0.0.1:3000/api/user/deactivate',
           { user_id: userId },
           { headers: { 'Authorization': `${this.getAuthToken()}` } }
         );
@@ -236,10 +246,10 @@ export default {
         console.error('Error deactivating user:', error);
       }
     },
-    
+
     async activateUser(userId) {
       try {
-        await axios.post('http://127.0.0.1:3000/api/user/activate', 
+        await axios.post('http://127.0.0.1:3000/api/user/activate',
           { user_id: userId },
           { headers: { 'Authorization': `${this.getAuthToken()}` } }
         );
@@ -248,15 +258,15 @@ export default {
         console.error('Error activating user:', error);
       }
     },
-    
+
     openCourseAssignModal(instructorId) {
       this.selectedInstructorId = instructorId;
       this.showCourseAssignModal = true;
     },
-    
+
     async assignCourseToInstructor() {
       if (!this.selectedInstructorId || !this.selectedCourse) return;
-      
+
       try {
         await axios.post('http://127.0.0.1:3000/api/courses/assign', {
           instructor_id: this.selectedInstructorId,
@@ -264,7 +274,7 @@ export default {
         }, {
           headers: { 'Authorization': `${this.getAuthToken()}` }
         });
-        
+
         this.showCourseAssignModal = false;
         this.fetchCourses();
         this.fetchUsers();
@@ -272,26 +282,46 @@ export default {
         console.error('Error assigning course:', error);
       }
     },
-    
+
     generateReport() {
       // Implement report generation logic
       console.log('Generating report');
     },
-    
+
     getAuthToken() {
       // Implement method to retrieve auth token from storage
       return localStorage.getItem('authToken');
     }
   },
-  
+
   created() {
     this.fetchUsers();
     this.fetchCourses();
   }
 }
 </script>
-  
-  <style scoped>
+
+<style scoped>
+.header-content {
+  display: flex;
+  align-items: center;
+  max-width: 100%;
+  margin: auto;
+  margin-bottom: 2rem;
+}
+.title-section {
+  flex-grow: 1;
+}
+.primary-btn {
+  background-image: linear-gradient(to right, rgb(99,102,241), rgb(168,85,247));
+  color: white;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: opacity 0.3s ease;
+}
 .dashboard-container {
   min-height: 100vh;
   padding: 2rem 4rem;
@@ -480,4 +510,3 @@ export default {
 }
 </style>
 
-  

@@ -1,13 +1,24 @@
 <template>
   <div :class="isDarkMode ? 'dark-mode' : 'light-mode'" class="dashboard-container">
     <div class="dashboard-content">
-      <header class="dashboard-header">
-        <h1 class="dashboard-title">
-          <span class="title-regular">Course</span>
-          <span class="title-fancy">Resources</span>
-        </h1>
-        <p class="dashboard-subtitle">Explore materials for your enrolled courses</p>
-      </header>
+      <div class="header-content">
+        <!-- Back to Dashboard Button -->
+        <router-link :to="isAuthenticated ? '/dashboard' : '/signin'" class="back-arrow">
+          <span class="back-icon">&#8592;</span>
+        </router-link>
+
+        <!-- Title and Subtitle -->
+        <div class="title-section">
+          <h1 class="hero-title">
+            Course <span class="accent-text">Resources</span>
+          </h1>
+          <p class="subtitle">Explore materials for your enrolled courses</p>
+        </div>
+
+        <!-- Right: Logout Button -->
+        <button @click="logoutUser" class="primary-btn">Logout</button>
+
+      </div>
 
       <div class="course-resources">
         <div v-for="course in enrolledCourses" :key="course.id" class="dashboard-card">
@@ -64,13 +75,25 @@ export default {
     }
   },
   methods: {
+    logoutUser() {
+      // Remove the authentication token
+      localStorage.removeItem("authToken");
+
+      // Redirect to sign-in page with a success message
+      this.$router.push({ path: "/signin", query: { message: "logged_out" } });
+    },
     toggleCourse(courseId) {
       const course = this.enrolledCourses.find(c => c.id === courseId);
       if (course) {
         course.isOpen = !course.isOpen;
       }
     }
-  }
+  },
+  computed: {
+    isAuthenticated() {
+      return !!localStorage.getItem('authToken'); // Checks if the auth token exists
+    }
+  },
 }
 </script>
 
@@ -86,29 +109,64 @@ export default {
   margin: 0 auto;
 }
 
-.dashboard-header {
+.header-content {
+  display: flex;
+  align-items: center;
   margin-bottom: 2rem;
+  /*padding-left: .5rem; /* Add this line to align with the cards */
 }
 
-.dashboard-title {
-  font-size: clamp(1.5rem, 4vw, 2.5rem);
+.back-arrow {
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  font-size: 2.5rem;
+  margin-right: 1rem;
+  transition: color 0.3s ease;
+}
+
+.back-arrow:hover {
+  color: rgba(255, 255, 255, 1);
+}
+
+.back-icon {
+  margin-right: 0;
+}
+
+.title-section {
+  flex-grow: 1;
+}
+
+.hero-title {
+  font-size: clamp(2rem, 4vw, 3rem);
   margin-bottom: 0.5rem;
 }
 
-.title-regular {
-  color: var(--text-dark);
-}
-
-.title-fancy {
+.accent-text {
   font-family: 'Pacifico', cursive;
-  background: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
+  background-image: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
   -webkit-background-clip: text;
   color: transparent;
 }
 
-.dashboard-subtitle {
-  color: var(--text-secondary-dark);
+.subtitle {
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  color: rgba(255, 255, 255, 0.5);
+}
+.primary-btn {
+  background-image: linear-gradient(to right, rgb(99,102,241), rgb(168,85,247));
+  color: white;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  border: none;
+  cursor: pointer;
   font-size: 1rem;
+  transition: opacity 0.3s ease;
+}
+
+.primary-btn:hover {
+  opacity: 0.9;
 }
 
 .dashboard-card {

@@ -2,13 +2,16 @@
   <div :class="isDarkMode ? 'dark-mode' : 'light-mode'" class="dashboard-container">
     <div class="dashboard-content">
       <!-- Welcome Section -->
-      <header class="dashboard-header">
-        <h1 class="dashboard-title">
-          <span class="title-regular">Welcome back,</span>
-          <span class="title-fancy">Mr. {{ instructorName }}</span>
-        </h1>
-        <p class="dashboard-subtitle">Teaching Excellence Dashboard</p>
-      </header>
+      <div class="header-content">
+        <div class="title-section">
+          <h1 class="dashboard-title">
+            <span class="title-regular">Welcome back,</span>
+            <span class="title-fancy">Mr. {{ instructorName }}</span>
+          </h1>
+          <p class="dashboard-subtitle">Teaching Excellence Dashboard</p>
+        </div>
+        <button @click="logoutUser" class="primary-btn">Logout</button>
+      </div>
 
       <!-- Quick Stats -->
       <div class="stats-grid">
@@ -113,8 +116,8 @@
             <h2>Quick Actions</h2>
           </div>
           <div class="actions-grid">
-            <button v-for="action in quickActions" 
-                    :key="action.id" 
+            <button v-for="action in quickActions"
+                    :key="action.id"
                     class="quick-action-btn"
                     @click="handleQuickAction(action.id)">
               <div class="action-icon">{{ action.icon }}</div>
@@ -193,6 +196,13 @@ export default {
     this.fetchRecentFeedback();
   },
   methods: {
+    logoutUser() {
+      // Remove the authentication token
+      localStorage.removeItem("authToken");
+
+      // Redirect to sign-in page with a success message
+      this.$router.push({ path: "/signin", query: { message: "logged_out" } });
+    },
     async fetchDashboardData() {
       try {
         const token = localStorage.getItem('authToken');
@@ -201,7 +211,7 @@ export default {
             'Authorization': token
           }
         });
-        
+
         const data = response.data;
         this.activeCourses = data.activeCourses;
         this.totalStudents = data.totalStudents;
@@ -220,7 +230,7 @@ export default {
             'Authorization': token
           }
         });
-        
+
         this.courses = response.data.map(course => ({
           id: course.id,
           name: course.name,
@@ -239,7 +249,7 @@ export default {
             'Authorization': token
           }
         });
-        
+
         this.recentFeedback = response.data.slice(0, 2).map(feedback => ({
           id: feedback.id,
           course: feedback.course,
@@ -275,6 +285,26 @@ export default {
 </script>
 
 <style scoped>
+.header-content {
+  display: flex;
+  align-items: center;
+  max-width: 100%;
+  margin: auto;
+  margin-bottom: 2rem;
+}
+.title-section {
+  flex-grow: 1;
+}
+.primary-btn {
+  background-image: linear-gradient(to right, rgb(99,102,241), rgb(168,85,247));
+  color: white;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: opacity 0.3s ease;
+}
 .dashboard-container {
   min-height: 100vh;
   padding: 2rem;

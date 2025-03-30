@@ -2,13 +2,19 @@
   <div :class="isDarkMode ? 'dark-mode' : 'light-mode'" class="dashboard-container">
     <div class="dashboard-content">
       <!-- Welcome Section -->
-      <header class="dashboard-header">
-        <h1 class="dashboard-title">
-          <span class="title-regular">Welcome back,</span>
-          <span class="title-fancy">{{ studentName }}</span>
-        </h1>
-        <p class="dashboard-subtitle">Your learning journey continues</p>
-      </header>
+      <div class="header-content">
+        <!-- Title and Subtitle -->
+        <div class="title-section">
+          <h1 class="dashboard-title">
+            <span class="title-regular">Welcome back,</span>
+            <span class="title-fancy">{{ studentName }}</span>
+          </h1>
+          <p class="dashboard-subtitle">Your learning journey continues</p>
+        </div>
+
+        <!-- Right: Logout Button -->
+        <button @click="logoutUser" class="primary-btn">Logout</button>
+      </div>
 
       <!-- Quick Stats -->
       <div class="stats-grid">
@@ -208,9 +214,9 @@
             <h2>Quick Links</h2>
           </div>
           <div class="links-grid">
-            <a v-for="link in quickLinks" 
-               :key="link.id" 
-               :href="link.url" 
+            <a v-for="link in quickLinks"
+               :key="link.id"
+               :href="link.url"
                class="quick-link-item">
               <div class="link-icon">{{ link.icon }}</div>
               <span class="link-label">{{ link.label }}</span>
@@ -327,13 +333,20 @@ export default {
     this.fetchDeadlines();
   },
   methods: {
+    logoutUser() {
+      // Remove the authentication token
+      localStorage.removeItem("authToken");
+
+      // Redirect to sign-in page with a success message
+      this.$router.push({ path: "/signin", query: { message: "logged_out" } });
+    },
     fetchDeadlines() {
       this.isLoadingDeadlines = true;
       this.deadlineError = null;
-      
+
       // Get the authentication token from localStorage or wherever you store it
       const token = localStorage.getItem('authToken');
-      
+
       axios.get('http://127.0.0.1:3000/student/deadline', {
         headers: {
           'Authorization': token
@@ -341,17 +354,17 @@ export default {
       })
       .then(response => {
         const deadlinesData = response.data.deadlines;
-        
+
         // Process the deadlines and calculate days left
         this.upcomingDeadlines = deadlinesData.map((deadline, index) => {
           // Parse the deadline date
           const deadlineDate = this.parseDeadlineDate(deadline.deadline);
           const today = new Date();
-          
+
           // Calculate days left
           const timeDiff = deadlineDate.getTime() - today.getTime();
           const daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
-          
+
           return {
             id: index + 1, // Generate an ID if not provided by the API
             title: deadline.title,
@@ -360,10 +373,10 @@ export default {
             date: deadline.deadline
           };
         });
-        
+
         // Sort deadlines by days left (closest first)
         this.upcomingDeadlines.sort((a, b) => a.daysLeft - b.daysLeft);
-        
+
         // Filter out past deadlines
         this.upcomingDeadlines = this.upcomingDeadlines.filter(deadline => deadline.daysLeft >= 0);
       })
@@ -419,12 +432,20 @@ export default {
   }
 }
 </script>
-  
+
 <style>
 .dashboard-container {
   min-height: 100vh;
   padding: 2rem;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  max-width: 100%;
+  margin: auto;
+  margin-bottom: 2rem;
 }
 
 .dashboard-content {
@@ -442,6 +463,9 @@ export default {
   font-size: clamp(1.5rem, 4vw, 2.5rem);
   margin-bottom: 0.5rem;
 }
+.title-section {
+  flex-grow: 1;
+}
 
 .title-regular {
   color: var(--text-dark);
@@ -457,6 +481,16 @@ export default {
 .dashboard-subtitle {
   color: var(--text-secondary-dark);
   font-size: 1rem;
+}
+.primary-btn {
+  background-image: linear-gradient(to right, rgb(99,102,241), rgb(168,85,247));
+  color: white;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: opacity 0.3s ease;
 }
 
 /* Stats Grid */

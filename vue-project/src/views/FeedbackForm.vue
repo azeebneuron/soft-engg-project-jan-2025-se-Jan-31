@@ -4,7 +4,7 @@
       <!-- Header Section -->
       <div class="header-content">
         <!-- Back to Dashboard Button -->
-        <router-link to="/" class="back-arrow">
+        <router-link :to="isAuthenticated ? '/dashboard' : '/signin'" class="back-arrow">
           <span class="back-icon">&#8592;</span>
         </router-link>
 
@@ -15,6 +15,10 @@
           </h1>
           <p class="subtitle">"We all need people who will give us feedback. That's how we improve." — Bill Gates</p>
         </div>
+
+        <!-- Right: Logout Button -->
+        <button @click="logoutUser" class="primary-btn">Logout</button>
+
       </div>
 
       <!-- Main Content -->
@@ -74,9 +78,9 @@
             <div v-for="feedback in feedbacks" :key="feedback.id" class="feedback-item">
               <div class="feedback-info">
                 <h4>
-                  Category: {{ feedback.category === 'instructor' ? 'Instructor' : 'Course' }} 
-                  {{ feedback.category === 'instructor' ? 
-                     `|| Instructor Name: ${feedback.instructor_name}` : 
+                  Category: {{ feedback.category === 'instructor' ? 'Instructor' : 'Course' }}
+                  {{ feedback.category === 'instructor' ?
+                     `|| Instructor Name: ${feedback.instructor_name}` :
                      `|| Course Name: ${feedback.course_name}` }}
                 </h4>
                 <h5>
@@ -132,25 +136,32 @@ export default {
         this.newFeedback.attachment = file;
       }
     },
+    logoutUser() {
+      // Remove the authentication token
+      localStorage.removeItem("authToken");
+
+      // Redirect to sign-in page with a success message
+      this.$router.push({ path: "/signin", query: { message: "logged_out" } });
+    },
     async submitFeedback() {
       try {
         this.isSubmitting = true;
         const formData = new FormData();
         formData.append('content', this.newFeedback.content);
         formData.append('category', this.newFeedback.category);
-        
+
         if (this.newFeedback.category === 'instructor' && this.newFeedback.instructor_id) {
           formData.append('instructor_id', this.newFeedback.instructor_id);
         } else if (this.newFeedback.category === 'course' && this.newFeedback.course_id) {
           formData.append('course_id', this.newFeedback.course_id);
         }
-        
+
         if (this.newFeedback.attachment) {
           formData.append('attachment', this.newFeedback.attachment);
         }
 
         const token = localStorage.getItem('authToken');
-        
+
         const response = await axios.post('http://127.0.0.1:3000/student/feedback', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
@@ -190,13 +201,13 @@ export default {
     async fetchFeedbacks() {
       try {
         const token = localStorage.getItem('authToken');
-        
+
         const response = await axios.get('http://127.0.0.1:3000/student/feedback', {
           headers: {
             'Authorization': token
           }
         });
-        
+
         if (response.status === 200) {
           this.feedbacks = response.data;
         }
@@ -208,13 +219,13 @@ export default {
     async fetchInstructors() {
       try {
         const token = localStorage.getItem('authToken');
-        
-        const response = await axios.get('/student/instructors', {
+
+        const response = await axios.get('/instructors', {
           headers: {
             'Authorization': token
           }
         });
-        
+
         if (response.status === 200) {
           this.instructors = response.data;
         }
@@ -225,13 +236,13 @@ export default {
     async fetchCourses() {
       try {
         const token = localStorage.getItem('authToken');
-        
+
         const response = await axios.get('http://127.0.0.1:3000/student/courses', {
           headers: {
             'Authorization': token
           }
         });
-        
+
         if (response.status === 200) {
           this.courses = response.data;
         }
@@ -241,10 +252,15 @@ export default {
     },
     formatDate(dateString) {
       if (!dateString) return 'N/A';
-      
+
       const options = { year: 'numeric', month: 'long', day: 'numeric' };
       return new Date(dateString).toLocaleDateString(undefined, options);
     },
+  },
+  computed: {
+    isAuthenticated() {
+      return !!localStorage.getItem('authToken'); // Checks if the auth token exists
+    }
   },
   mounted() {
     this.fetchFeedbacks();
@@ -268,8 +284,10 @@ export default {
 .header-content {
   display: flex;
   align-items: center;
+  max-width: 80%;
+  margin: auto;
   margin-bottom: 2rem;
-  padding-left: 7.5rem; /* Add this line to align with the cards */
+  /* padding-left: 7.5rem; Add this line to align with the cards */
 }
 
 .back-arrow {

@@ -3,7 +3,7 @@
     <!-- Header Section -->
     <div class="header-content">
       <!-- Back to Dashboard Button -->
-      <router-link to="/" class="back-arrow">
+      <router-link :to="isAuthenticated ? '/dashboard' : '/signin'" class="back-arrow">
         <span class="back-icon">&#8592;</span>
       </router-link>
 
@@ -14,6 +14,10 @@
         </h1>
         <p class="subtitle">Stay on top of your tasks and never miss a deadline</p>
       </div>
+
+      <!-- Right: Logout Button -->
+      <button @click="logoutUser" class="primary-btn">Logout</button>
+
     </div>
 
     <!-- Main Content -->
@@ -87,6 +91,13 @@ export default {
     };
   },
   methods: {
+    logoutUser() {
+      // Remove the authentication token
+      localStorage.removeItem("authToken");
+
+      // Redirect to sign-in page with a success message
+      this.$router.push({ path: "/signin", query: { message: "logged_out" } });
+    },
     // Fetch user's courses
     async fetchCourses() {
       try {
@@ -101,7 +112,7 @@ export default {
         console.error('Error fetching courses:', error);
       }
     },
-    
+
     // Fetch user's deadlines
     async fetchDeadlines() {
       try {
@@ -113,20 +124,20 @@ export default {
         this.deadlines = response.data.deadlines.map(deadline => ({
           ...deadline,
           // Add status field to each deadline (not in API originally)
-          status: deadline.status || "not-started" 
+          status: deadline.status || "not-started"
         }));
       } catch (error) {
         console.error('Error fetching deadlines:', error);
       }
     },
-    
+
     // Add a new deadline
     async addDeadline() {
       if (this.newDeadline.course && this.newDeadline.title && this.newDeadline.date) {
         try {
           // Format date from YYYY-MM-DD to DD-MM-YYYY for the API
           const apiFormattedDate = this.formatApiDate(this.newDeadline.date);
-          
+
           const response = await axios.post('http://127.0.0.1:3000/student/deadline', {
             course: this.newDeadline.course,
             title: this.newDeadline.title,
@@ -137,7 +148,7 @@ export default {
               'Content-Type': 'application/json'
             }
           });
-          
+
           // Refresh deadlines after adding
           await this.fetchDeadlines();
           this.resetForm();
@@ -146,7 +157,7 @@ export default {
         }
       }
     },
-    
+
     // Delete a deadline
     async deleteDeadline(id) {
       try {
@@ -157,14 +168,14 @@ export default {
           },
           data: { id: id }
         });
-        
+
         // Refresh deadlines after deletion
         await this.fetchDeadlines();
       } catch (error) {
         console.error('Error deleting deadline:', error);
       }
     },
-    
+
     // Update deadline status
     async updateDeadlineStatus(deadline) {
       try {
@@ -184,7 +195,7 @@ export default {
         console.error('Error updating deadline status:', error);
       }
     },
-    
+
     // Reset form fields
     resetForm() {
       this.newDeadline = {
@@ -194,7 +205,7 @@ export default {
         status: "not-started"
       };
     },
-    
+
     // Format date for display (from DD-MM-YYYY to readable format)
     formatDisplayDate(dateString) {
       const [day, month, year] = dateString.split('-');
@@ -202,13 +213,13 @@ export default {
       const options = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
       return date.toLocaleDateString("en-US", options);
     },
-    
+
     // Format date for API (from YYYY-MM-DD to DD-MM-YYYY)
     formatApiDate(dateString) {
       const [year, month, day] = dateString.split('-');
       return `${day}-${month}-${year}`;
     },
-    
+
     // Get current date in YYYY-MM-DD format for form input
     getCurrentDate() {
       const today = new Date();
@@ -216,6 +227,11 @@ export default {
       const month = String(today.getMonth() + 1).padStart(2, '0');
       const day = String(today.getDate()).padStart(2, '0');
       return `${year}-${month}-${day}`;
+    }
+  },
+  computed: {
+    isAuthenticated() {
+      return !!localStorage.getItem('authToken'); // Checks if the auth token exists
     }
   },
   created() {
@@ -240,8 +256,10 @@ export default {
 .header-content {
   display: flex;
   align-items: center;
+  max-width: 80%;
+  margin: auto;
   margin-bottom: 2rem;
-  padding-left: 3.5rem; /* Add this line to align with the cards */
+  /* padding-left: 7.5rem; Add this line to align with the cards */
 }
 
 .back-arrow {
@@ -286,7 +304,7 @@ export default {
 .dashboard-content {
   display: flex;
   gap: 2rem;
-  max-width: 1200px;
+  max-width: 80%;
   margin: auto;
 }
 

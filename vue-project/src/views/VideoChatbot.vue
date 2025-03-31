@@ -97,7 +97,10 @@
                    :key="message.id" 
                    :class="['message', message.type]">
                 <div class="message-content">
-                  <div class="message-text">{{ message.text }}</div>
+                  <!-- Use v-html with the parseMarkdown function for AI responses -->
+                  <div class="message-text" v-if="message.type === 'ai'" v-html="parseMarkdown(message.text)"></div>
+                  <!-- Keep user messages as plain text -->
+                  <div class="message-text" v-else>{{ message.text }}</div>
                 </div>
               </div>
             </div>
@@ -129,10 +132,10 @@
   </template>
   
   <script>
-  export default {
+    export default {
     name: 'VideoChatbot',
     data() {
-      return {
+        return {
         isDarkMode: true,
         isPlaying: false,
         isSidebarHidden: false,
@@ -146,8 +149,10 @@
         availablePlaylists: [],
         authToken: null,
         userRole: null,
-        isLoading: false
-      };
+        isLoading: false,
+        // Add marked library for markdown parsing
+        markedLoaded: false
+        };
     },
     methods: {
       checkAuthentication() {
@@ -177,6 +182,44 @@
           }
         };
       },
+      parseMarkdown(text) {
+      if (!this.markedLoaded || !text) return text;
+      
+      try {
+        // Convert markdown to HTML and sanitize to prevent XSS
+        const parsed = marked.parse(text, { 
+          breaks: true, // Enable line breaks
+          gfm: true,    // Enable GitHub Flavored Markdown
+          sanitize: false
+        });
+        
+        // Return the parsed HTML
+        return parsed;
+      } catch (error) {
+        console.error('Error parsing markdown:', error);
+        return text; // Return original text if parsing fails
+      }
+    },
+    
+    // Function to load the marked library
+    loadMarkedLibrary() {
+      return new Promise((resolve, reject) => {
+        if (window.marked) {
+          this.markedLoaded = true;
+          resolve();
+          return;
+        }
+        
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js';
+        script.onload = () => {
+          this.markedLoaded = true;
+          resolve();
+        };
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+    },
       
       fetchAvailablePlaylists() {
         this.isLoading = true;
@@ -413,97 +456,117 @@
         localStorage.setItem('sidebarHidden', this.isSidebarHidden);
       },
       
-      sendChatMessage() {
-        if (!this.newMessage.trim() || !this.currentVideo.videoId) return;
-        
-        // Add user message
-        this.chatMessages.push({
-          id: Date.now(),
-          type: 'user',
-          text: this.newMessage
-        });
-        
-        const questionText = this.newMessage;
-        this.newMessage = '';
-        
-        // Reset textarea height
-        if (this.$refs.messageInput) {
-          this.$refs.messageInput.style.height = 'auto';
+      async sendChatMessage() {
+      if (!this.newMessage.trim() || !this.currentVideo.videoId) return;
+      
+      // Ensure marked library is loaded
+      if (!this.markedLoaded) {
+        try {
+          await this.loadMarkedLibrary();
+        } catch (error) {
+          console.error('Failed to load markdown library:', error);
         }
-        
-        // Show loading indicator
-        const loadingId = Date.now() + 1;
-        this.chatMessages.push({
-          id: loadingId,
-          type: 'ai',
-          text: 'Thinking...'
-        });
-        
-        this.$nextTick(() => {
-          this.scrollToBottom();
-        });
-        
-        // Save updated chat messages (including the loading state)
-        this.saveSessionState();
-        
-        // Get AI response from backend using getAuthToken
-        fetch('http://127.0.0.1:3000/api/video/chat', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...this.getAuthToken().headers
-          },
-          body: JSON.stringify({
-            video_id: this.currentVideo.videoId,
-            question: questionText
-          })
+      }
+      
+      // Add user message
+      this.chatMessages.push({
+        id: Date.now(),
+        type: 'user',
+        text: this.newMessage
+      });
+      
+      const questionText = this.newMessage;
+      this.newMessage = '';
+      
+      // Reset textarea height
+      if (this.$refs.messageInput) {
+        this.$refs.messageInput.style.height = 'auto';
+      }
+      
+      // Show loading indicator
+      const loadingId = Date.now() + 1;
+      this.chatMessages.push({
+        id: loadingId,
+        type: 'ai',
+        text: 'Thinking...'
+      });
+      
+      this.$nextTick(() => {
+        this.scrollToBottom();
+      });
+      
+      // Save updated chat messages (including the loading state)
+      this.saveSessionState();
+      
+      // Get AI response from backend using getAuthToken
+      fetch('http://127.0.0.1:3000/api/video/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...this.getAuthToken().headers
+        },
+        body: JSON.stringify({
+          video_id: this.currentVideo.videoId,
+          question: questionText
         })
-        .then(response => response.json())
-        .then(data => {
-          // Remove loading message
-          this.chatMessages = this.chatMessages.filter(msg => msg.id !== loadingId);
-          
-          if (data.status === 'success') {
-            // Add AI response
-            this.chatMessages.push({
-              id: Date.now() + 2,
-              type: 'ai',
-              text: data.response
-            });
-          } else {
-            // Add error message
-            this.chatMessages.push({
-              id: Date.now() + 2,
-              type: 'ai',
-              text: `Sorry, I couldn't process your question. ${data.error || 'Please try again.'}`
-            });
-          }
-          
-          // Save updated chat messages after response
-          this.saveSessionState();
-        })
-        .catch(error => {
-          // Remove loading message
-          this.chatMessages = this.chatMessages.filter(msg => msg.id !== loadingId);
-          
+      })
+      .then(response => response.json())
+      .then(data => {
+        // Remove loading message
+        this.chatMessages = this.chatMessages.filter(msg => msg.id !== loadingId);
+        
+        if (data.status === 'success') {
+          // Add AI response
+          this.chatMessages.push({
+            id: Date.now() + 2,
+            type: 'ai',
+            text: data.response
+          });
+        } else {
           // Add error message
           this.chatMessages.push({
             id: Date.now() + 2,
             type: 'ai',
-            text: 'Sorry, there was a problem connecting to the server. Please try again later.'
+            text: `Sorry, I couldn't process your question. ${data.error || 'Please try again.'}`
           });
-          
-          console.error('Error getting chat response:', error);
-          
-          // Save updated chat messages after error
-          this.saveSessionState();
-        })
-        .finally(() => {
-          this.$nextTick(() => {
-            this.scrollToBottom();
-          });
+        }
+        
+        // Save updated chat messages after response
+        this.saveSessionState();
+      })
+      .catch(error => {
+        // Remove loading message
+        this.chatMessages = this.chatMessages.filter(msg => msg.id !== loadingId);
+        
+        // Add error message
+        this.chatMessages.push({
+          id: Date.now() + 2,
+          type: 'ai',
+          text: 'Sorry, there was a problem connecting to the server. Please try again later.'
         });
-      },
+        
+        console.error('Error getting chat response:', error);
+        
+        // Save updated chat messages after error
+        this.saveSessionState();
+      })
+      .finally(() => {
+        this.$nextTick(() => {
+          this.scrollToBottom();
+        });
+      });
+    },
+
+    // Add method to the created/mounted lifecycle hook
+    created() {
+      // Check authentication when component is created
+      this.checkAuthentication();
+      
+      // Load marked library
+      this.loadMarkedLibrary()
+        .then(() => console.log('Markdown library loaded'))
+        .catch(error => console.error('Failed to load markdown library:', error));
+    },
       
       scrollToBottom() {
         const container = this.$refs.messageContainer;
@@ -582,6 +645,11 @@
     created() {
       // Check authentication when component is created
       this.checkAuthentication();
+
+      this.loadMarkedLibrary()
+        .then(() => console.log('Markdown library loaded'))
+        .catch(error => console.error('Failed to load markdown library:', error));
+
     },
     mounted() {
       // Adjust textarea height when component mounts
@@ -983,17 +1051,131 @@
     color: white;
     border-bottom-right-radius: 0.25rem;
   }
-  
-  .message.ai {
-    align-self: flex-start;
-    background: rgba(30, 30, 30, 0.8);
+
+    /* Enhanced styling for markdown content in messages */
+    .message-text {
+    line-height: 1.6;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    }
+
+    /* Style for markdown elements inside AI messages */
+    .message.ai .message-text h1,
+    .message.ai .message-text h2,
+    .message.ai .message-text h3,
+    .message.ai .message-text h4,
+    .message.ai .message-text h5,
+    .message.ai .message-text h6 {
+    margin-top: 0.75rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    line-height: 1.4;
+    }
+
+    .message.ai .message-text h1 {
+    font-size: 1.4rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 0.3rem;
+    }
+
+    .message.ai .message-text h2 {
+    font-size: 1.3rem;
+    }
+
+    .message.ai .message-text h3 {
+    font-size: 1.2rem;
+    }
+
+    .message.ai .message-text h4,
+    .message.ai .message-text h5,
+    .message.ai .message-text h6 {
+    font-size: 1.1rem;
+    }
+
+    .message.ai .message-text p {
+    margin-bottom: 0.75rem;
+    }
+
+    .message.ai .message-text ul,
+    .message.ai .message-text ol {
+    margin: 0.5rem 0 0.5rem 1.5rem;
+    padding-left: 0;
+    }
+
+    .message.ai .message-text li {
+    margin-bottom: 0.25rem;
+    }
+
+    .message.ai .message-text a {
+    color: #a5b4fc;
+    text-decoration: underline;
+    transition: color 0.2s ease;
+    }
+
+    .message.ai .message-text a:hover {
+    color: #818cf8;
+    }
+
+    .message.ai .message-text pre {
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 0.4rem;
+    padding: 0.75rem;
+    margin: 0.75rem 0;
+    overflow-x: auto;
+    font-family: 'Courier New', monospace;
+    }
+
+    .message.ai .message-text code {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 0.3rem;
+    padding: 0.2rem 0.4rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    }
+
+    .message.ai .message-text pre code {
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    }
+
+    .message.ai .message-text blockquote {
+    border-left: 4px solid rgba(99, 102, 241, 0.5);
+    margin: 0.75rem 0;
+    padding: 0.25rem 0 0.25rem 1rem;
+    background: rgba(0, 0, 0, 0.2);
+    color: rgba(255, 255, 255, 0.8);
+    }
+
+    .message.ai .message-text hr {
+    border: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 1rem 0;
+    }
+
+    .message.ai .message-text table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.75rem 0;
+    }
+
+    .message.ai .message-text th,
+    .message.ai .message-text td {
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-bottom-left-radius: 0.25rem;
-  }
-  
-  .message-text {
-    line-height: 1.5;
-  }
+    padding: 0.5rem;
+    text-align: left;
+    }
+
+    .message.ai .message-text th {
+    background: rgba(0, 0, 0, 0.3);
+    font-weight: 600;
+    }
+
+    .message.ai .message-text img {
+    max-width: 100%;
+    border-radius: 0.4rem;
+    margin: 0.5rem 0;
+    }
   
   .chat-input-container {
     padding: 1rem;

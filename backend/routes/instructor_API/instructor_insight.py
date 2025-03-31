@@ -13,7 +13,7 @@ from llm_integration import NarrativeGenerator
 load_dotenv()
 
 # Initialize the analytics and narrative generator
-analytics = PerformanceAnalytics(data_path='../../data')
+analytics = PerformanceAnalytics(data_path='/Users/sambhavjha/soft-engg-project-jan-2025-se-Jan-31/backend/data')
 narrative_generator = NarrativeGenerator()
 
 class InstructorInsightAPI(Resource):
@@ -36,11 +36,9 @@ class InstructorInsightAPI(Resource):
         try:
             # Get comprehensive dashboard data
             dashboard_data = analytics.get_instructor_dashboard_data(instructor_name)
-            print(dashboard_data)
             
             # Generate narrative
             narrative = narrative_generator.generate_instructor_narrative(dashboard_data)
-            print(narrative)
             
             # Return combined data
             return {

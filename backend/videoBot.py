@@ -95,7 +95,6 @@ class VideoChatbot(Resource):
         data = request.json
         video_id = data.get('video_id')
         question = data.get('question')
-        print(video_id, question)
         
         if not video_id or not question:
             return {"error": "Video ID and question are required"}, 400
@@ -146,7 +145,6 @@ class ProcessPlaylist(Resource):
             return {"error": "No playlist URL provided"}, 400
         
         playlist_id = extract_playlist_id(playlist_url)
-        print(playlist_id)
         
         if not playlist_id:
             return {"error": "Invalid playlist URL"}, 400

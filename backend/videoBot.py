@@ -45,14 +45,16 @@ class ProcessLecture(Resource):
         """Process a lecture URL and retrieve its transcript."""
         data = request.json
         youtube_url = data.get('youtube_url')
+        video_id = data.get('video_id')  # Added support for direct video_id
         
-        if not youtube_url:
-            return {"error": "No YouTube URL provided"}, 400
+        if not youtube_url and not video_id:
+            return {"error": "No YouTube URL or video ID provided"}, 400
         
-        video_id = extract_video_id(youtube_url)
-        
-        if not video_id:
-            return {"error": "Invalid YouTube URL"}, 400
+        if youtube_url:
+            video_id = extract_video_id(youtube_url)
+            
+            if not video_id:
+                return {"error": "Invalid YouTube URL"}, 400
         
         # Check if lecture is already in the store
         if lecture_store.has_lecture(video_id):
@@ -93,6 +95,7 @@ class VideoChatbot(Resource):
         data = request.json
         video_id = data.get('video_id')
         question = data.get('question')
+        print(video_id, question)
         
         if not video_id or not question:
             return {"error": "Video ID and question are required"}, 400
@@ -101,7 +104,26 @@ class VideoChatbot(Resource):
         lecture = lecture_store.get_lecture(video_id)
         
         if not lecture:
-            return {"error": "Lecture not found"}, 404
+            # If lecture is not found, try to fetch and process it first
+            # Get video details from YouTube API
+            video_details = get_video_details(video_id)
+            
+            if not video_details:
+                return {"error": "Lecture not found and could not retrieve video details"}, 404
+            
+            # Get video transcript
+            transcript = get_video_transcript(video_id)
+            
+            if not transcript:
+                return {"error": "Lecture not found and could not retrieve video transcript"}, 404
+            
+            # Save lecture to store
+            lecture_store.save_lecture(video_id, video_details['title'], transcript)
+            lecture = {
+                'video_id': video_id,
+                'title': video_details['title'],
+                'transcript': transcript
+            }
         
         # Create context for Gemini
         context = create_lecture_context(lecture['title'], lecture['transcript'])
@@ -124,6 +146,7 @@ class ProcessPlaylist(Resource):
             return {"error": "No playlist URL provided"}, 400
         
         playlist_id = extract_playlist_id(playlist_url)
+        print(playlist_id)
         
         if not playlist_id:
             return {"error": "Invalid playlist URL"}, 400

@@ -188,6 +188,8 @@ class PerformanceAnalytics:
         if student_info.empty:
             return {'error': 'Student not found'}
         
+        print(student_info)
+        
         student_enroll = self.enrollments[self.enrollments['student_id'] == student_id]
         student_perf = self.performance[self.performance['student_id'] == student_id]
         student_interact = self.interactions[self.interactions['student_id'] == student_id]
@@ -206,7 +208,7 @@ class PerformanceAnalytics:
         metrics['student_id'] = student_id
         metrics['name'] = student_info['name'].iloc[0]
         metrics['email'] = student_info['email'].iloc[0]
-        metrics['enrollment_date'] = student_info['enrollment_date'].iloc[0]
+        metrics['enrollment_date'] = str(student_info['enrollment_date'].iloc[0])
         metrics['current_trimester'] = student_info['current_trimester'].iloc[0]
         metrics['cgpa'] = student_info['cgpa'].iloc[0]
         
@@ -214,6 +216,8 @@ class PerformanceAnalytics:
         metrics['courses'] = {}
         metrics['ongoing_courses'] = []
         metrics['completed_courses'] = []
+
+        print(metrics)
         
         total_grade_points = 0
         total_credits = 0
@@ -312,6 +316,10 @@ class PerformanceAnalytics:
         elif risk_score > 0.4:
             metrics['insights'].append("Moderate risk of academic challenges. Proactive support recommended.")
         
+        for key, value in metrics.items():
+            if isinstance(value, (pd._libs.tslibs.timestamps.Timestamp, pd.Timestamp)):
+                metrics[key] = str(value)
+
         return metrics
     
     def calculate_performance_trend(self, student_perf):

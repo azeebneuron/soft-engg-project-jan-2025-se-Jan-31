@@ -11,24 +11,30 @@ import os
 
 def numpy_json_encoder(obj):
     """
-    Custom JSON encoder function to handle NumPy types
-    
-    Converts NumPy types to native Python types:
-    - np.int64 -> int
-    - np.float64 -> float
-    - np.ndarray -> list
+    Enhanced JSON encoder function to handle all special types:
+    - NumPy types
+    - Pandas types
+    - NaN values
     """
+    # Handle NumPy types
     if isinstance(obj, (np.int64, np.integer)):
         return int(obj)
     elif isinstance(obj, (np.float64, np.float32, np.floating)):
-        return float(obj)
+        return float(obj) if not np.isnan(obj) else None
     elif isinstance(obj, np.ndarray):
         return obj.tolist()
     elif isinstance(obj, np.bool_):
         return bool(obj)
     
-    # Raise TypeError for unhandled types
-    raise TypeError(f'Object of type {type(obj)} is not JSON serializable')
+    # Handle Pandas types
+    if pd.isna(obj):
+        return None
+    
+    # Handle other non-serializable types
+    try:
+        return json.JSONEncoder().default(obj)
+    except TypeError:
+        return str(obj)
 
 def create_app():
     app = Flask(__name__)

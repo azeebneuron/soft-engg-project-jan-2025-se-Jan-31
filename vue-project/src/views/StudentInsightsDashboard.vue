@@ -1,215 +1,283 @@
 <template>
-  <div class="dashboard-container">
+  <div :class="isDarkMode ? 'dark-mode' : 'light-mode'" class="dashboard-container">
     <div class="dashboard-content">
       <!-- Dashboard Header -->
-      <div class="dashboard-header">
+      <header class="dashboard-header">
         <h1 class="dashboard-title">
           <span class="title-regular">Your</span>
           <span class="title-fancy">Academic Insights</span>
         </h1>
-        <p class="dashboard-subtitle">Track your performance and get personalized recommendations</p>
-      </div>
+        <div class="header-actions">
+          <button class="action-btn" @click="refreshData">
+            <i class="fas fa-sync-alt me-2"></i> Refresh
+          </button>
+        </div>
+      </header>
 
       <!-- Loading State -->
       <div v-if="loading" class="loading-container">
-        <div class="spinner"></div>
+        <div class="loading-indicator" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
         <p>Analyzing your academic data...</p>
       </div>
 
       <!-- Error State -->
-      <div v-if="error" class="alert alert-danger">
-        <strong>Error:</strong> {{ error }}
+      <div v-if="error" class="alert-container">
+        <div class="alert-message">
+          <strong>Error:</strong> {{ error }}
+        </div>
       </div>
 
       <!-- Dashboard Content -->
-      <div v-if="!loading && !error" class="dashboard-content">
+      <div v-if="!loading && !error" class="dashboard-main">
         <!-- Student Summary Stats -->
         <div class="stats-grid">
           <div class="stat-card">
-            <div class="stat-header">
-              <h3>CGPA</h3>
-              <div class="refresh-action">
-                <button class="refresh-btn" @click="refreshData">
-                  <i class="fas fa-sync-alt"></i>
-                </button>
+            <h3>CGPA</h3>
+            <p class="stat-value">{{ studentData?.cgpa || 'N/A' }}</p>
+            <div class="progress">
+              <div 
+                class="progress-bar" 
+                :class="gpaColorClass" 
+                role="progressbar"
+                :style="{ width: `${gpaPercentage}%` }"
+                :aria-valuenow="gpaPercentage"
+                aria-valuemin="0"
+                aria-valuemax="100">
               </div>
-            </div>
-            <div class="stat-value">{{ insights.student_data?.cgpa || 'N/A' }}</div>
-            <div class="circular-progress">
-              <svg viewBox="0 0 36 36" class="circular-chart">
-                <path class="circle-bg" d="M18 2.0845
-                  a 15.9155 15.9155 0 0 1 0 31.831
-                  a 15.9155 15.9155 0 0 1 0 -31.831" />
-                <path
-                  class="circle"
-                  :class="gpaColorClass"
-                  :stroke-dasharray="`${gpaPercentage}, 100`"
-                  d="M18 2.0845
-                    a 15.9155 15.9155 0 0 1 0 31.831
-                    a 15.9155 15.9155 0 0 1 0 -31.831"
-                />
-              </svg>
             </div>
           </div>
           
           <div class="stat-card">
             <h3>Current Trimester</h3>
-            <div class="stat-value">{{ insights.student_data?.current_trimester || 'N/A' }}</div>
-            <div class="stat-info">
-              <span class="student-id">ID: {{ insights.student_data?.student_id || 'N/A' }}</span>
-            </div>
+            <p class="stat-value">{{ studentData?.current_trimester || 'N/A' }}</p>
+            <p class="stat-trend">ID: {{ studentData?.student_id || 'N/A' }}</p>
           </div>
           
           <div class="stat-card">
             <h3>Performance Trend</h3>
-            <div class="stat-value">
+            <p class="stat-value">
               <span class="trend-badge" :class="trendClass">
-                {{ insights.student_data?.performance_trend || 'N/A' }}
+                {{ performanceTrend }}
                 <i :class="trendIcon"></i>
               </span>
-            </div>
-            <div class="stat-trend" :class="{'positive': trendClass === 'trend-up'}">
+            </p>
+            <p class="stat-trend" :class="{'positive': trendClass === 'trend-up'}">
               {{ getTrendDescription() }}
-            </div>
+            </p>
           </div>
           
           <div class="stat-card">
             <h3>Attendance</h3>
-            <div class="stat-value">{{ calculateAverageAttendance() }}%</div>
-            <div class="progress-bar">
-              <div class="progress-fill" :style="{width: `${calculateAverageAttendance()}%`}"></div>
+            <p class="stat-value">{{ calculateAverageAttendance() }}%</p>
+            <div class="progress">
+              <div 
+                class="progress-bar" 
+                :class="attendanceColorClass(calculateAverageAttendance())" 
+                role="progressbar"
+                :style="{ width: `${calculateAverageAttendance()}%` }"
+                :aria-valuenow="calculateAverageAttendance()"
+                aria-valuemin="0"
+                aria-valuemax="100">
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Dashboard Grid -->
-        <div class="dashboard-grid">
-          <!-- AI-Generated Narrative Card -->
-          <div class="dashboard-card narrative-card">
-            <div class="card-header">
-              <h2>
-                <i class="fas fa-robot"></i> Your Personalized Insights
-              </h2>
-              <span class="ai-badge">Generated by Gemini</span>
+        <!-- AI-Generated Narrative Card -->
+        <div class="dashboard-card narrative-card">
+          <div class="card-header">
+            <h2>
+              <i class="fas fa-robot me-2"></i> Your Personalized Insights
+            </h2>
+            <span class="badge">Generated by Gemini</span>
+          </div>
+          <div class="card-body">
+            <div v-if="narrative" class="narrative-content">
+              <div v-for="(paragraph, index) in formattedNarrative" :key="index" class="narrative-paragraph">
+                {{ paragraph }}
+              </div>
             </div>
-            <div class="card-body">
-              <div v-if="insights.narrative" class="narrative-content">
-                <p v-for="(paragraph, index) in formattedNarrative" :key="index" class="narrative-paragraph">
-                  {{ paragraph }}
-                </p>
-              </div>
-              <div v-else class="placeholder-content">
-                <p>No narrative available. Try refreshing the data.</p>
-              </div>
+            <div v-else class="placeholder-content">
+              <p>No narrative available. Try refreshing the data.</p>
             </div>
           </div>
+        </div>
 
-          <!-- Current Courses Card -->
-          <div class="dashboard-card">
-            <div class="card-header">
-              <h2>
-                <i class="fas fa-book-open"></i> Current Courses
-              </h2>
-              <button class="view-all-btn">View All</button>
-            </div>
-            <div class="card-body">
-              <div v-if="insights.student_data?.ongoing_courses?.length" class="course-list">
-                <div v-for="course in insights.student_data.ongoing_courses" :key="course.course_code" class="course-item">
-                  <div class="course-info">
-                    <h3>{{ course.course_name }}</h3>
-                    <p class="course-code">{{ course.course_code }}</p>
-                  </div>
-                  <div class="course-progress">
-                    <div class="progress-bar">
-                      <div class="progress-fill" :style="{width: `${calculateCourseProgress(course)}%`}"></div>
-                    </div>
-                    <span class="progress-percentage">{{ calculateCourseProgress(course) }}%</span>
-                  </div>
-                  <div class="course-stats">
-                    <div class="course-stat">
-                      <span class="stat-label">Quiz 1</span>
-                      <span class="stat-value">{{ course.quiz1 ? course.quiz1.toFixed(1) : 'Pending' }}</span>
-                    </div>
-                    <div class="course-stat">
-                      <span class="stat-label">Quiz 2</span>
-                      <span class="stat-value">{{ course.quiz2 ? course.quiz2.toFixed(1) : 'Pending' }}</span>
-                    </div>
-                    <div class="course-stat">
-                      <span class="stat-label">Attendance</span>
-                      <span class="stat-value" :class="attendanceColorClass(course.attendance_percentage)">
-                        {{ course.attendance_percentage ? course.attendance_percentage.toFixed(1) + '%' : 'N/A' }}
-                      </span>
-                    </div>
-                  </div>
-                  <button class="action-btn" @click="viewCourseComparison(course.course_code)">
-                    <i class="fas fa-chart-bar"></i> Compare
-                  </button>
-                </div>
-              </div>
-              <div v-else class="placeholder-content">
-                <p>You are not currently enrolled in any courses.</p>
-              </div>
-            </div>
+        <!-- Current Courses Card -->
+        <div class="dashboard-card">
+          <div class="card-header">
+            <h2>
+              <i class="fas fa-book-open me-2"></i> Current Courses
+            </h2>
+            <button class="action-btn-small">View All</button>
           </div>
-
-          <!-- Performance History Card -->
-          <div class="dashboard-card">
-            <div class="card-header">
-              <h2>
-                <i class="fas fa-history"></i> Performance History
-              </h2>
-              <button class="view-all-btn">View All</button>
-            </div>
-            <div class="card-body">
-              <div v-if="insights.student_data?.completed_courses?.length" class="history-content">
-                <div v-for="course in insights.student_data.completed_courses" :key="course.course_code" class="history-item">
-                  <div class="history-info">
-                    <h3>{{ course.course_name }}</h3>
-                    <p class="course-code">{{ course.course_code }}</p>
-                  </div>
-                  <div class="history-data">
-                    <div class="trimester-badge">{{ course.trimester }}</div>
-                    <div class="grade-badge" :class="gradeColorClass(course.grade)">
-                      {{ course.grade }}
-                    </div>
-                    <div class="score-display">
-                      {{ course.total_score ? course.total_score.toFixed(1) : 'N/A' }}
-                    </div>
-                  </div>
-                </div>
+          <div class="card-body">
+            <div v-if="ongoingCourses.length" class="table-section">
+              <div class="table-container">
+                <table class="dashboard-table">
+                  <thead>
+                    <tr>
+                      <th>Course</th>
+                      <th>Code</th>
+                      <th>Quiz 1</th>
+                      <th>Quiz 2</th>
+                      <th>Attendance</th>
+                      <th>Progress</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="course in paginatedCourses" :key="course.course_code">
+                      <td>{{ course.course_name }}</td>
+                      <td>{{ course.course_code }}</td>
+                      <td>{{ course.quiz1 ? course.quiz1.toFixed(1) : 'Pending' }}</td>
+                      <td>{{ course.quiz2 ? course.quiz2.toFixed(1) : 'Pending' }}</td>
+                      <td>
+                        <span :class="attendanceColorTextClass(course.attendance_percentage)">
+                          {{ course.attendance_percentage ? course.attendance_percentage.toFixed(1) + '%' : 'N/A' }}
+                        </span>
+                      </td>
+                      <td>
+                        <div class="progress">
+                          <div 
+                            class="progress-bar bg-primary" 
+                            role="progressbar"
+                            :style="{ width: `${calculateCourseProgress(course)}%` }"
+                            :aria-valuenow="calculateCourseProgress(course)"
+                            aria-valuemin="0"
+                            aria-valuemax="100">
+                          </div>
+                        </div>
+                        <small>{{ calculateCourseProgress(course) }}%</small>
+                      </td>
+                      <td>
+                        <button class="action-btn-small" @click="viewCourseComparison(course.course_code)">
+                          <i class="fas fa-chart-bar me-1"></i> Compare
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-              <div v-else class="placeholder-content">
-                <p>You have not completed any courses yet.</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Course Recommendations Card -->
-          <div class="dashboard-card recommendation-card">
-            <div class="card-header">
-              <h2>
-                <i class="fas fa-lightbulb"></i> Course Recommendations
-              </h2>
-            </div>
-            <div class="card-body">
-              <button class="recommendation-btn" @click="fetchRecommendations" :disabled="loadingRecommendations">
-                <i class="fas fa-magic"></i>
-                {{ loadingRecommendations ? 'Generating Recommendations...' : 'Get AI Recommendations' }}
-              </button>
               
-              <div v-if="recommendations" class="recommendations-list">
-                <div v-for="(paragraph, index) in formattedRecommendations" :key="index" class="recommendation-item">
-                  {{ paragraph }}
-                </div>
+              <div class="pagination-controls" v-if="totalCoursePages > 1">
+                <button 
+                  class="pagination-btn" 
+                  :disabled="coursesCurrentPage === 1"
+                  @click="coursesCurrentPage--"
+                >
+                  <i class="fas fa-chevron-left"></i>
+                </button>
+                <span>Page {{ coursesCurrentPage }} of {{ totalCoursePages }}</span>
+                <button 
+                  class="pagination-btn" 
+                  :disabled="coursesCurrentPage === totalCoursePages"
+                  @click="coursesCurrentPage++"
+                >
+                  <i class="fas fa-chevron-right"></i>
+                </button>
               </div>
-              <div v-else-if="!loadingRecommendations" class="placeholder-content">
-                <p>Click the button above to get personalized course recommendations based on your performance.</p>
+            </div>
+            <div v-else class="placeholder-content">
+              <p>You are not currently enrolled in any courses.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Performance History Card -->
+        <div class="dashboard-card">
+          <div class="card-header">
+            <h2>
+              <i class="fas fa-history me-2"></i> Performance History
+            </h2>
+            <button class="action-btn-small">View All</button>
+          </div>
+          <div class="card-body">
+            <div v-if="completedCourses.length" class="table-section">
+              <div class="table-container">
+                <table class="dashboard-table">
+                  <thead>
+                    <tr>
+                      <th>Course</th>
+                      <th>Code</th>
+                      <th>Trimester</th>
+                      <th>Grade</th>
+                      <th>Score</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="course in paginatedHistory" :key="course.course_code">
+                      <td>{{ course.course_name }}</td>
+                      <td>{{ course.course_code }}</td>
+                      <td>
+                        <div class="trimester-badge">{{ course.trimester }}</div>
+                      </td>
+                      <td>
+                        <div class="grade-badge" :class="gradeColorClass(course.grade)">
+                          {{ course.grade }}
+                        </div>
+                      </td>
+                      <td>{{ course.total_score ? course.total_score.toFixed(1) : 'N/A' }}</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
+              
+              <div class="pagination-controls" v-if="totalHistoryPages > 1">
+                <button 
+                  class="pagination-btn" 
+                  :disabled="historyCurrentPage === 1"
+                  @click="historyCurrentPage--"
+                >
+                  <i class="fas fa-chevron-left"></i>
+                </button>
+                <span>Page {{ historyCurrentPage }} of {{ totalHistoryPages }}</span>
+                <button 
+                  class="pagination-btn" 
+                  :disabled="historyCurrentPage === totalHistoryPages"
+                  @click="historyCurrentPage++"
+                >
+                  <i class="fas fa-chevron-right"></i>
+                </button>
+              </div>
+            </div>
+            <div v-else class="placeholder-content">
+              <p>You have not completed any courses yet.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Course Recommendations Card -->
+        <div class="dashboard-card recommendation-card">
+          <div class="card-header">
+            <h2>
+              <i class="fas fa-lightbulb me-2"></i> Course Recommendations
+            </h2>
+          </div>
+          <div class="card-body">
+            <button class="action-btn" @click="fetchRecommendations" :disabled="loadingRecommendations">
+              <i class="fas fa-magic me-2"></i>
+              {{ loadingRecommendations ? 'Generating Recommendations...' : 'Get AI Recommendations' }}
+            </button>
+            
+            <div v-if="recommendations" class="narrative-content mt-4">
+              <div v-for="(paragraph, index) in formattedRecommendations" :key="index" class="narrative-paragraph">
+                {{ paragraph }}
+              </div>
+            </div>
+            <div v-else-if="!loadingRecommendations" class="placeholder-content">
+              <p>Click the button above to get personalized course recommendations based on your performance.</p>
             </div>
           </div>
         </div>
       </div>
     </div>
+
+    <footer class="dashboard-footer">
+      Made with ❤️ by Dobby The Free-Elf
+    </footer>
   </div>
 </template>
 
@@ -220,20 +288,42 @@ export default {
   name: 'StudentInsightsDashboard',
   data() {
     return {
-      insights: {
-        student_data: {},
-        narrative: ''
-      },
+      studentData: {},
+      narrative: '',
       recommendations: null,
       loading: true,
       loadingRecommendations: false,
-      error: null
+      error: null,
+      authToken: null,
+      isDarkMode: false,
+      coursesCurrentPage: 1,
+      historyCurrentPage: 1,
+      itemsPerPage: 5
     };
   },
   computed: {
+    // Transform courses object into arrays
+    ongoingCourses() {
+      if (!this.studentData?.courses) return [];
+      
+      // Filter for ongoing courses (those without a grade)
+      return Object.values(this.studentData.courses).filter(course => 
+        course.status === 'Ongoing' || !course.grade
+      );
+    },
+    
+    completedCourses() {
+      if (!this.studentData?.courses) return [];
+      
+      // Filter for completed courses (those with a grade)
+      return Object.values(this.studentData.courses).filter(course => 
+        course.status === 'Completed' || course.grade
+      );
+    },
+    
     formattedNarrative() {
-      if (!this.insights.narrative) return [];
-      return this.insights.narrative.split('\n\n').filter(p => p.trim());
+      if (!this.narrative) return [];
+      return this.narrative.split('\n\n').filter(p => p.trim());
     },
     
     formattedRecommendations() {
@@ -242,70 +332,187 @@ export default {
     },
     
     gpaPercentage() {
-      const cgpa = this.insights.student_data?.cgpa || 0;
-      // Convert CGPA (0-10 scale) to percentage (0-100)
+      const cgpa = this.studentData?.cgpa || 0;
       return (cgpa / 10) * 100;
     },
     
     gpaColorClass() {
-      const cgpa = this.insights.student_data?.cgpa || 0;
-      if (cgpa >= 8) return 'success';
-      if (cgpa >= 6) return 'warning';
-      return 'danger';
+      const cgpa = this.studentData?.cgpa || 0;
+      if (cgpa >= 8) return 'bg-success';
+      if (cgpa >= 6) return 'bg-warning';
+      return 'bg-danger';
     },
     
     trendClass() {
-      const trend = this.insights.student_data?.performance_trend || '';
-      if (trend.toLowerCase() === 'improving') return 'trend-up';
-      if (trend.toLowerCase() === 'declining') return 'trend-down';
+      const trend = this.studentData?.performance_trend || '';
+      if (trend?.toLowerCase() === 'improving') return 'trend-up';
+      if (trend?.toLowerCase() === 'declining') return 'trend-down';
       return 'trend-stable';
     },
     
     trendIcon() {
-      const trend = this.insights.student_data?.performance_trend || '';
-      if (trend.toLowerCase() === 'improving') return 'fas fa-arrow-up';
-      if (trend.toLowerCase() === 'declining') return 'fas fa-arrow-down';
+      const trend = this.studentData?.performance_trend || '';
+      if (trend?.toLowerCase() === 'improving') return 'fas fa-arrow-up';
+      if (trend?.toLowerCase() === 'declining') return 'fas fa-arrow-down';
       return 'fas fa-equals';
+    },
+    
+    paginatedCourses() {
+      const start = (this.coursesCurrentPage - 1) * this.itemsPerPage;
+      return this.ongoingCourses.slice(start, start + this.itemsPerPage);
+    },
+    
+    totalCoursePages() {
+      return Math.ceil(this.ongoingCourses.length / this.itemsPerPage) || 1;
+    },
+    
+    paginatedHistory() {
+      const start = (this.historyCurrentPage - 1) * this.itemsPerPage;
+      return this.completedCourses.slice(start, start + this.itemsPerPage);
+    },
+    
+    totalHistoryPages() {
+      return Math.ceil(this.completedCourses.length / this.itemsPerPage) || 1;
+    },
+    
+    // Get performance trend based on grades or create a default one
+    performanceTrend() {
+      if (this.studentData?.performance_trend) {
+        return this.studentData.performance_trend;
+      }
+      
+      // If no trend is provided, we can calculate a simple one
+      if (this.completedCourses.length >= 2) {
+        const sortedCourses = [...this.completedCourses].sort((a, b) => {
+          const trimA = parseInt(a.trimester.replace('Trimester ', ''));
+          const trimB = parseInt(b.trimester.replace('Trimester ', ''));
+          return trimB - trimA; // Sort by most recent first
+        });
+        
+        // Compare latest two trimesters
+        if (sortedCourses.length >= 2) {
+          const latest = sortedCourses[0].total_score;
+          const previous = sortedCourses[1].total_score;
+          
+          if (latest > previous + 5) return 'Improving';
+          if (latest < previous - 5) return 'Declining';
+          return 'Stable';
+        }
+      }
+      
+      return 'Stable';
     }
+  },
+  created() {
+    this.initializeAuth();
+    // Check system preference for dark mode
+    this.isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   },
   mounted() {
     this.fetchInsights();
+    
+    // Add listener for system dark mode changes
+    const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    if (darkModeMediaQuery.addEventListener) {
+      darkModeMediaQuery.addEventListener('change', e => {
+        this.isDarkMode = e.matches;
+      });
+    } else {
+      // Fallback for older browsers
+      darkModeMediaQuery.addListener(e => {
+        this.isDarkMode = e.matches;
+      });
+    }
   },
   methods: {
-    async fetchInsights() {
-      this.loading = true;
-      this.error = null;
-      
-      try {
-        const response = await axios.get('http://127.0.0.1:3000/api/student/insights', {
-          headers: {
-            'Authorization': `Bearer ${this.$store.state.authToken}`
-          }
-        });
-        
-        this.insights = response.data;
-      } catch (error) {
-        console.error('Error fetching student insights:', error);
-        this.error = error.response?.data?.message || 'Failed to load insights. Please try again.';
-      } finally {
+    initializeAuth() {
+      this.authToken = localStorage.getItem('authToken');
+      if (!this.authToken) {
+        this.error = 'Please login to access your insights';
         this.loading = false;
+        if (this.$router) {
+          this.$router.push('/login');
+        }
       }
     },
     
+    async fetchInsights() {
+  if (!this.authToken) return;
+  
+  this.loading = true;
+  this.error = null;
+  
+  try {
+    const response = await axios.get('http://127.0.0.1:3000/api/student/insights', {
+      headers: {
+        'Authorization': this.authToken,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    // Handle case where response might be a string
+    let data = response.data;
+    if (typeof data === 'string') {
+      try {
+        data = JSON.parse(data);
+      } catch (parseError) {
+        console.error('Error parsing response data:', parseError);
+        throw new Error('Invalid data format received from server');
+      }
+    }
+    
+    console.log('Processed data:', data);
+    
+    // Extract student data from the correct structure
+    if (data && data.student_data) {
+      this.studentData = data.student_data;
+      this.narrative = data.narrative || '';
+    } else if (data) {
+      this.studentData = data;
+      this.narrative = ''; 
+    } else {
+      throw new Error('No data received from the server');
+    }
+    
+    // Reset pagination
+    this.coursesCurrentPage = 1;
+    this.historyCurrentPage = 1;
+  } catch (error) {
+    console.error('Error fetching insights:', error);
+    
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+    }
+    
+    this.error = error.response?.data?.message || 
+                'Failed to load your academic insights. Please try again.';
+  } finally {
+    this.loading = false;
+  }
+},
+    
     async fetchRecommendations() {
+      if (!this.authToken) return;
+      
       this.loadingRecommendations = true;
       
       try {
         const response = await axios.get('http://127.0.0.1:3000/api/student/recommendations', {
           headers: {
-            'Authorization': `Bearer ${this.$store.state.auth.token}`
+            'Authorization': this.authToken,
+            'Content-Type': 'application/json'
           }
         });
         
-        this.recommendations = response.data.recommendations;
+        this.recommendations = response.data.recommendations || '';
       } catch (error) {
         console.error('Error fetching recommendations:', error);
-        this.$toast.error('Failed to generate recommendations. Please try again.');
+        const errorMessage = error.response?.data?.message || 
+                           'Failed to load recommendations. Please try again.';
+        
+        // Simple alert if no toast system
+        alert(errorMessage);
       } finally {
         this.loadingRecommendations = false;
       }
@@ -317,26 +524,38 @@ export default {
     },
     
     viewCourseComparison(courseCode) {
-      // Get the course ID from the code (in a real app, you'd use a proper mapping)
+      // Remove non-numeric characters for route
       const courseId = courseCode.replace(/[^0-9]/g, '');
-      this.$router.push(`/student/courses/${courseId}/comparison`);
+      if (this.$router) {
+        this.$router.push(`/student/courses/${courseId}/comparison`);
+      } else {
+        window.location.href = `/student/courses/${courseId}/comparison`;
+      }
     },
     
     calculateCourseProgress(course) {
-      // Simple estimation: 25% for first assignment, 50% for Quiz 1, 75% for assignments 1-6, 100% if all done
+      // Simplified progress calculation
+      if (!course) return 0;
       if (course.endterm) return 100;
       if (course.quiz2) return 90;
       if (course.assignment6) return 75;
       if (course.quiz1) return 50;
       if (course.assignment1) return 25;
-      return 10; // Just started
+      return 10; // Course started but no assessments yet
     },
     
     attendanceColorClass(percentage) {
-      if (!percentage) return 'attendance-na';
-      if (percentage < 75) return 'attendance-danger';
-      if (percentage < 85) return 'attendance-warning';
-      return 'attendance-success';
+      if (!percentage) return '';
+      if (percentage < 75) return 'bg-danger';
+      if (percentage < 85) return 'bg-warning';
+      return 'bg-success';
+    },
+    
+    attendanceColorTextClass(percentage) {
+      if (!percentage) return '';
+      if (percentage < 75) return 'text-danger';
+      if (percentage < 85) return 'text-warning';
+      return 'text-success';
     },
     
     gradeColorClass(grade) {
@@ -349,18 +568,17 @@ export default {
     },
 
     calculateAverageAttendance() {
-      const courses = this.insights.student_data?.ongoing_courses || [];
-      if (!courses.length) return 0;
+      if (!this.ongoingCourses.length) return 0;
       
-      const totalAttendance = courses.reduce((sum, course) => {
+      const totalAttendance = this.ongoingCourses.reduce((sum, course) => {
         return sum + (course.attendance_percentage || 0);
       }, 0);
       
-      return Math.round(totalAttendance / courses.length);
+      return Math.round(totalAttendance / this.ongoingCourses.length);
     },
     
     getTrendDescription() {
-      const trend = this.insights.student_data?.performance_trend || '';
+      const trend = this.performanceTrend;
       if (trend.toLowerCase() === 'improving') return 'Keep up the good work!';
       if (trend.toLowerCase() === 'declining') return 'Needs attention';
       return 'Maintaining consistent performance';
@@ -374,8 +592,39 @@ export default {
   min-height: 100vh;
   padding: 2rem;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  color: #333;
+}
+
+/* Theme Variables */
+.dark-mode {
+  --background: #121212;
+  --card-bg: rgba(255, 255, 255, 0.05);
+  --card-border: rgba(255, 255, 255, 0.1);
+  --text: #e1e1e1;
+  --text-secondary: #a0a0a0;
+  --primary: rgb(99, 102, 241);
+  --primary-gradient: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --success: #10b981;
+  --item-bg: rgba(255, 255, 255, 0.03);
+  background-color: var(--background);
+  color: var(--text);
+}
+
+.light-mode {
+  --background: #f5f5f7;
+  --card-bg: rgba(255, 255, 255, 0.9);
+  --card-border: rgba(0, 0, 0, 0.1);
+  --text: #333333;
+  --text-secondary: #666666;
+  --primary: rgb(99, 102, 241);
+  --primary-gradient: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --success: #10b981;
+  --item-bg: rgba(0, 0, 0, 0.03);
+  background-color: var(--background);
+  color: var(--text);
 }
 
 .dashboard-content {
@@ -385,7 +634,11 @@ export default {
   margin: 0 auto;
 }
 
+/* Dashboard Header */
 .dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 2rem;
 }
 
@@ -395,23 +648,18 @@ export default {
 }
 
 .title-regular {
-  color: #333;
+  color: var(--text);
 }
 
 .title-fancy {
-  font-family: 'Segoe UI', Roboto, sans-serif;
-  background: linear-gradient(to right, #4285f4, #34a853);
+  font-family: 'Pacifico', cursive;
+  background: var(--primary-gradient);
   -webkit-background-clip: text;
   color: transparent;
-  margin-left: 8px;
+  margin-left: 0.5rem;
 }
 
-.dashboard-subtitle {
-  color: #6c757d;
-  font-size: 1rem;
-}
-
-/* Loading */
+/* Loading Container */
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -420,185 +668,90 @@ export default {
   padding: 50px 0;
 }
 
-.spinner {
-  width: 50px;
-  height: 50px;
-  border: 5px solid rgba(0, 0, 0, 0.1);
+.loading-indicator {
+  width: 3rem;
+  height: 3rem;
+  border: 0.25rem solid var(--card-border);
   border-radius: 50%;
-  border-top-color: #4285f4;
-  animation: spin 1s ease-in-out infinite;
+  border-top-color: var(--primary);
+  animation: spin 1s linear infinite;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Alert Container */
+.alert-container {
+  margin-bottom: 2rem;
+}
+
+.alert-message {
+  padding: 1rem;
+  background-color: rgba(239, 68, 68, 0.2);
+  border-radius: 0.5rem;
+  color: var(--danger);
 }
 
 /* Stats Grid */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.5rem;
+  gap: 1rem;
   margin-bottom: 2rem;
 }
 
 .stat-card {
-  background: white;
+  background: var(--card-bg);
+  backdrop-filter: blur(10px);
   padding: 1.5rem;
   border-radius: 1rem;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  position: relative;
-  overflow: hidden;
+  border: 1px solid var(--card-border);
+  transition: transform 0.2s;
 }
 
 .stat-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-}
-
-.stat-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.refresh-btn {
-  background: none;
-  border: none;
-  color: #4285f4;
-  cursor: pointer;
-  transition: transform 0.3s ease;
-}
-
-.refresh-btn:hover {
-  transform: rotate(180deg);
-}
-
-.stat-card h3 {
-  color: #6c757d;
-  font-size: 1rem;
-  margin-top: 0;
-  margin-bottom: 0.5rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .stat-value {
   font-size: 2rem;
   font-weight: bold;
   margin: 0.5rem 0;
-  color: #333;
-}
-
-.student-id {
-  font-size: 0.9rem;
-  color: #6c757d;
-}
-
-.circular-progress {
-  margin-top: 0.5rem;
-}
-
-.circular-chart {
-  width: 80px;
-  height: 80px;
-}
-
-.circle-bg {
-  fill: none;
-  stroke: #eee;
-  stroke-width: 3.8;
-}
-
-.circle {
-  fill: none;
-  stroke-width: 2.8;
-  stroke-linecap: round;
-  animation: progress 1s ease-out forwards;
-}
-
-.circle.success {
-  stroke: #34a853;
-}
-
-.circle.warning {
-  stroke: #fbbc05;
-}
-
-.circle.danger {
-  stroke: #ea4335;
-}
-
-@keyframes progress {
-  0% { stroke-dasharray: 0 100; }
-}
-
-.trend-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 1rem;
-}
-
-.trend-up {
-  background-color: rgba(52, 168, 83, 0.15);
-  color: #34a853;
-}
-
-.trend-down {
-  background-color: rgba(234, 67, 53, 0.15);
-  color: #ea4335;
-}
-
-.trend-stable {
-  background-color: rgba(251, 188, 5, 0.15);
-  color: #fbbc05;
+  color: var(--primary);
 }
 
 .stat-trend {
   font-size: 0.9rem;
-  color: #6c757d;
-  margin-top: 0.5rem;
+  color: var(--text-secondary);
 }
 
 .stat-trend.positive {
-  color: #34a853;
+  color: var(--success);
 }
 
-.progress-bar {
-  width: 100%;
-  height: 8px;
-  background: rgba(66, 133, 244, 0.1);
-  border-radius: 4px;
-  margin-top: 0.8rem;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(to right, #4285f4, #34a853);
-  border-radius: 4px;
-  transition: width 0.3s ease;
-}
-
-/* Dashboard Grid */
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 1.5rem;
+/* Dashboard Cards */
+.dashboard-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
 .dashboard-card {
-  background: white;
+  background: var(--card-bg);
+  backdrop-filter: blur(10px);
   padding: 1.5rem;
   border-radius: 1rem;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.dashboard-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--card-border);
 }
 
 .card-header {
@@ -606,314 +759,437 @@ export default {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .card-header h2 {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
 }
 
-.card-header h2 i {
-  color: #4285f4;
-}
-
-.view-all-btn {
-  color: #4285f4;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: color 0.3s ease;
-}
-
-.view-all-btn:hover {
-  color: #34a853;
-  text-decoration: underline;
-}
-
-/* Narrative Card */
-.narrative-card {
-  border-left: 4px solid #4285f4;
-}
-
-.ai-badge {
-  background: linear-gradient(to right, #4285f4, #34a853);
+.badge {
+  padding: 0.25rem 0.75rem;
+  background: var(--primary-gradient);
   color: white;
-  padding: 4px 10px;
-  border-radius: 12px;
+  border-radius: 1rem;
   font-size: 0.8rem;
-  font-weight: bold;
+}
+
+.narrative-card {
+  border-left: 4px solid var(--primary);
+}
+
+.narrative-content {
+  line-height: 1.6;
 }
 
 .narrative-paragraph {
   margin-bottom: 15px;
-  line-height: 1.6;
-  color: #333;
 }
 
-/* Course List */
-.course-list {
+.placeholder-content {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+/* Table Section */
+.table-section {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.5rem;
 }
 
-.course-item {
-  background: rgba(66, 133, 244, 0.03);
-  border-radius: 0.75rem;
+.table-container {
+  max-height: 400px;
+  overflow-y: auto;
+  border-radius: 0.5rem;
+  border: 1px solid var(--card-border);
+}
+
+/* Tables */
+.dashboard-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.dashboard-table th,
+.dashboard-table td {
   padding: 1rem;
-  transition: background 0.3s ease;
+  text-align: left;
+  border-bottom: 1px solid var(--card-border);
 }
 
-.course-item:hover {
-  background: rgba(66, 133, 244, 0.07);
-}
-
-.course-info h3 {
-  margin: 0 0 0.25rem 0;
-  font-size: 1.1rem;
-}
-
-.course-code {
-  margin: 0;
-  color: #6c757d;
-  font-size: 0.9rem;
-}
-
-.course-progress {
-  margin: 0.75rem 0;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.progress-percentage {
-  font-size: 0.9rem;
+.dashboard-table th {
+  position: sticky;
+  top: 0;
+  background: var(--card-bg);
   font-weight: bold;
-  color: #4285f4;
+  color: var(--text-secondary);
+  z-index: 10;
 }
 
-.course-stats {
+.dashboard-table tr:hover {
+  background: var(--item-bg);
+}
+
+/* Pagination Controls */
+.pagination-controls {
   display: flex;
-  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
   gap: 1rem;
   margin: 0.5rem 0;
 }
 
-.course-stat {
-  display: flex;
-  flex-direction: column;
-  min-width: 80px;
-}
-
-.stat-label {
-  font-size: 0.8rem;
-  color: #6c757d;
-}
-
-.stat-value {
-  font-size: 1rem;
-  font-weight: bold;
-}
-
-.attendance-danger {
-  color: #ea4335;
-}
-
-.attendance-warning {
-  color: #fbbc05;
-}
-
-.attendance-success {
-  color: #34a853;
-}
-
-.attendance-na {
-  color: #6c757d;
-}
-
-.action-btn {
-  margin-top: 0.75rem;
-  padding: 0.5rem 1rem;
-  background: linear-gradient(to right, #4285f4, #34a853);
-  border: none;
-  border-radius: 0.5rem;
-  color: white;
-  cursor: pointer;
-  font-size: 0.9rem;
+.pagination-btn {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  transition: transform 0.3s ease;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: none;
+  background-color: var(--item-bg);
+  color: var(--text);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.pagination-btn:hover {
+  background-color: var(--primary);
+  color: white;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Progress */
+.progress {
+  height: 8px;
+  background-color: var(--item-bg);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 0.5rem;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: 4px;
+}
+
+.bg-primary {
+  background-color: var(--primary);
+}
+
+.bg-danger {
+  background-color: var(--danger);
+}
+
+.bg-warning {
+  background-color: var(--warning);
+}
+
+.bg-success {
+  background-color: var(--success);
+}
+
+/* Text Colors */
+.text-danger {
+  color: var(--danger);
+}
+
+.text-warning {
+  color: var(--warning);
+}
+
+.text-success {
+  color: var(--success);
+}
+
+/* Badges */
+.trend-badge, .trimester-badge, .grade-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.trend-up {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: var(--success);
+}
+
+.trend-down {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: var(--danger);
+}
+
+.trend-stable {
+  background-color: rgba(160, 160, 160, 0.2);
+  color: var(--text);
+}
+
+.trimester-badge {
+  background-color: var(--item-bg);
+  color: var(--text);
+}
+
+.grade-a {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: var(--success);
+}
+
+.grade-b {
+  background-color: rgba(99, 102, 241, 0.2);
+  color: var(--primary);
+}
+
+.grade-c {
+  background-color: rgba(245, 158, 11, 0.2);
+  color: var(--warning);
+}
+
+.grade-d, .grade-f {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: var(--danger);
+}
+
+/* Buttons */
+.action-btn {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: var(--primary-gradient);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .action-btn:hover {
   transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* History List */
-.history-content {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.history-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem;
-  background: rgba(66, 133, 244, 0.03);
-  border-radius: 0.5rem;
-  transition: background 0.3s ease;
-}
-
-.history-item:hover {
-  background: rgba(66, 133, 244, 0.07);
-}
-
-.history-info h3 {
-  margin: 0 0 0.25rem 0;
-  font-size: 1rem;
-}
-
-.history-data {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.trimester-badge {
-  padding: 4px 8px;
-  background: rgba(66, 133, 244, 0.1);
-  color: #4285f4;
-  border-radius: 4px;
-  font-size: 0.8rem;
-}
-
-.grade-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  font-weight: bold;
-  font-size: 0.9rem;
-}
-
-.grade-a {
-  background-color: #34a853;
-  color: white;
-}
-
-.grade-b {
-  background-color: #4285f4;
-  color: white;
-}
-
-.grade-c {
-  background-color: #fbbc05;
-  color: black;
-}
-
-.grade-d {
-  background-color: #ff6d01;
-  color: white;
-}
-
-.grade-f {
-  background-color: #ea4335;
-  color: white;
-}
-
-.score-display {
-  font-weight: bold;
-}
-
-/* Recommendations */
-.recommendation-card {
-  border-left: 4px solid #34a853;
-}
-
-.recommendation-btn {
-  width: 100%;
-  padding: 0.75rem;
-  margin-bottom: 1.25rem;
-  background: linear-gradient(to right, #4285f4, #34a853);
-  color: white;
-  border: none;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.recommendation-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-.recommendation-btn:disabled {
+.action-btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
 
-.recommendations-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
+/* Completing the CSS styles that were cut off */
 
-.recommendation-item {
-  padding: 1rem;
-  background: rgba(52, 168, 83, 0.05);
+.action-btn-small {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8rem;
+  background: transparent;
+  color: var(--primary);
+  border: 1px solid var(--primary);
   border-radius: 0.5rem;
-  border-left: 3px solid #34a853;
-  line-height: 1.6;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.placeholder-content {
-  padding: 2rem;
+.action-btn-small:hover {
+  background-color: var(--primary);
+  color: white;
+}
+
+/* Recommendation Card Styles */
+.recommendation-card {
+  border-left: 4px solid var(--warning);
+}
+
+/* Footer Styles */
+.dashboard-footer {
   text-align: center;
-  color: #6c757d;
-  background: rgba(0, 0, 0, 0.02);
-  border-radius: 0.5rem;
+  margin-top: 3rem;
+  padding: 1.5rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
 }
 
-/* Responsive Design */
+/* Animations */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive Adjustments */
 @media (max-width: 768px) {
   .dashboard-container {
     padding: 1rem;
   }
-
-  .dashboard-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .stats-grid {
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  }
-
-  .history-item, 
-  .course-item {
+  
+  .dashboard-header {
     flex-direction: column;
     align-items: flex-start;
   }
-
-  .history-data {
-    margin-top: 0.75rem;
+  
+  .header-actions {
+    margin-top: 1rem;
     width: 100%;
-    justify-content: space-between;
   }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .table-container {
+    overflow-x: auto;
+  }
+  
+  .dashboard-table th,
+  .dashboard-table td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .action-btn-small {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .dashboard-container {
+    padding: 0;
+    background: white;
+  }
+  
+  .dashboard-content {
+    max-width: 100%;
+  }
+  
+  .action-btn,
+  .action-btn-small,
+  .pagination-controls,
+  .recommendation-card,
+  .dashboard-footer {
+    display: none;
+  }
+  
+  .dashboard-card {
+    page-break-inside: avoid;
+    border: 1px solid #ddd;
+    margin-bottom: 15px;
+    background: white;
+  }
+  
+  .table-container {
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+/* Accessibility Enhancements */
+:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.visually-hidden:not(:focus):not(:active) {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+/* Dark Mode Specific Adjustments */
+.dark-mode .dashboard-table th {
+  box-shadow: 0 1px 0 var(--card-border);
+}
+
+/* Custom Scrollbar for Dark Mode */
+.dark-mode ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dark-mode ::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.dark-mode ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.dark-mode ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Light Mode Specific Adjustments */
+.light-mode .dashboard-card {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Add subtle hover effect for cards */
+.dashboard-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Skeleton Loading Animation */
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 0.8; }
+  100% { opacity: 0.6; }
+}
+
+.skeleton-loading {
+  animation: pulse 1.5s infinite;
+  background: var(--item-bg);
+  border-radius: 4px;
+}
+
+/* Course Progress Custom Styling */
+.course-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+/* Empty State Styling */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  color: var(--text-secondary);
+}
+
+.empty-state-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.3;
+}
+
+.empty-state-message {
+  text-align: center;
+  max-width: 300px;
+  line-height: 1.5;
 }
 </style>

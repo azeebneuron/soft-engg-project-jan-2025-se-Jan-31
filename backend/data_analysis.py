@@ -44,7 +44,6 @@ class PerformanceAnalytics:
             print(f"Error loading data: {e}")
     
     def get_course_performance(self, course_code=None, instructor=None):
-        print('hola')
         """
         Get performance metrics for a specific course or all courses taught by an instructor
         Returns a dict with various metrics
@@ -174,7 +173,6 @@ class PerformanceAnalytics:
             if assignment_scores[0] > assignment_scores[-1] + 5:
                 metrics['insights'].append("Declining performance trend across assignments. Consider adjusting difficulty curve.")
                 
-            print(metrics)
 
         return metrics
     
@@ -187,8 +185,6 @@ class PerformanceAnalytics:
         student_info = self.students[self.students['student_id'] == student_id]
         if student_info.empty:
             return {'error': 'Student not found'}
-        
-        print(student_info)
         
         student_enroll = self.enrollments[self.enrollments['student_id'] == student_id]
         student_perf = self.performance[self.performance['student_id'] == student_id]
@@ -216,8 +212,6 @@ class PerformanceAnalytics:
         metrics['courses'] = {}
         metrics['ongoing_courses'] = []
         metrics['completed_courses'] = []
-
-        print(metrics)
         
         total_grade_points = 0
         total_credits = 0

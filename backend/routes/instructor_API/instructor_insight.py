@@ -36,11 +36,9 @@ class InstructorInsightAPI(Resource):
         try:
             # Get comprehensive dashboard data
             dashboard_data = analytics.get_instructor_dashboard_data(instructor_name)
-            print(dashboard_data)
             
             # Generate narrative
             narrative = narrative_generator.generate_instructor_narrative(dashboard_data)
-            print(narrative)
             
             # Return combined data
             return {

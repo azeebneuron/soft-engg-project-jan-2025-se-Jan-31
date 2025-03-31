@@ -58,7 +58,7 @@
           </div>
         </div>
 
-        <!-- AI-Generated Narrative Card -->
+        <!-- AI-Generated Narrative Card with Markdown Support -->
         <div class="dashboard-card narrative-card">
           <div class="card-header">
             <h2>
@@ -68,9 +68,12 @@
           </div>
           <div class="card-body">
             <div v-if="insights.narrative" class="narrative-content">
-              <p v-for="(paragraph, index) in formattedNarrative" :key="index" class="narrative-paragraph">
-                {{ paragraph }}
-              </p>
+              <div 
+                v-for="(paragraph, index) in formattedNarrative" 
+                :key="index" 
+                class="narrative-paragraph"
+                v-html="renderMarkdown(paragraph)"
+              ></div>
             </div>
             <div v-else class="placeholder-content">
               <p>No narrative available. Try refreshing the data.</p>
@@ -252,6 +255,8 @@
 <script>
 import axios from 'axios';
 import * as d3 from 'd3';
+import { marked } from 'marked'; // Import marked for Markdown rendering
+import DOMPurify from 'dompurify'; // Import DOMPurify for sanitizing HTML
 
 export default {
   name: 'InstructorInsightsDashboard',
@@ -275,6 +280,7 @@ export default {
   computed: {
     formattedNarrative() {
       if (!this.insights.narrative) return [];
+      // Split by double newlines to identify paragraphs
       return this.insights.narrative.split('\n\n').filter(p => p.trim());
     },
     
@@ -319,6 +325,19 @@ export default {
     this.renderCharts();
   },
   methods: {
+    // New method for rendering markdown
+    renderMarkdown(text) {
+      // Configure marked options if needed
+      marked.setOptions({
+        breaks: true, // Add line breaks on single line breaks
+        gfm: true,    // Enable GitHub Flavored Markdown
+      });
+      
+      // Parse markdown and sanitize the resulting HTML
+      const rawHtml = marked.parse(text);
+      return DOMPurify.sanitize(rawHtml);
+    },
+    
     async fetchInsights() {
       this.loading = true;
       this.error = null;
@@ -934,9 +953,143 @@ export default {
   border-left: 4px solid var(--primary);
 }
 
+/* Markdown Content Styling */
+.narrative-content {
+  line-height: 1.6;
+  color: var(--text);
+}
+
 .narrative-paragraph {
   margin-bottom: 15px;
-  line-height: 1.6;
+}
+
+/* Markdown Elements */
+.narrative-paragraph h1,
+.narrative-paragraph h2,
+.narrative-paragraph h3,
+.narrative-paragraph h4,
+.narrative-paragraph h5,
+.narrative-paragraph h6 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.narrative-paragraph h1 {
+  font-size: 1.8rem;
+  border-bottom: 1px solid var(--card-border);
+  padding-bottom: 0.3rem;
+}
+
+.narrative-paragraph h2 {
+  font-size: 1.5rem;
+  border-bottom: 1px solid var(--card-border);
+  padding-bottom: 0.3rem;
+}
+
+.narrative-paragraph h3 {
+  font-size: 1.3rem;
+}
+
+.narrative-paragraph h4 {
+  font-size: 1.1rem;
+}
+
+.narrative-paragraph p {
+  margin-bottom: 1rem;
+}
+
+.narrative-paragraph a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.narrative-paragraph a:hover {
+  text-decoration: underline;
+}
+
+.narrative-paragraph strong,
+.narrative-paragraph b {
+  font-weight: 600;
+}
+
+.narrative-paragraph em,
+.narrative-paragraph i {
+  font-style: italic;
+}
+
+.narrative-paragraph code {
+  font-family: monospace;
+  background: var(--item-bg);
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.25rem;
+  font-size: 0.9em;
+}
+
+.narrative-paragraph pre {
+  background: var(--item-bg);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.narrative-paragraph pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+.narrative-paragraph blockquote {
+  border-left: 4px solid var(--primary);
+  padding-left: 1rem;
+  margin-left: 0;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.narrative-paragraph ul,
+.narrative-paragraph ol {
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+
+.narrative-paragraph li {
+  margin-bottom: 0.5rem;
+}
+
+.narrative-paragraph table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.narrative-paragraph table th,
+.narrative-paragraph table td {
+  padding: 0.5rem;
+  border: 1px solid var(--card-border);
+}
+
+.narrative-paragraph table th {
+  background: var(--item-bg);
+  font-weight: 600;
+}
+
+.narrative-paragraph hr {
+  border: 0;
+  height: 1px;
+  background: var(--card-border);
+  margin: 1.5rem 0;
+}
+
+.narrative-paragraph img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  display: block;
+  margin: 1rem 0;
 }
 
 .placeholder-content {

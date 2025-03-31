@@ -295,7 +295,7 @@ export default {
       loadingRecommendations: false,
       error: null,
       authToken: null,
-      isDarkMode: false,
+      isDarkMode: true,
       coursesCurrentPage: 1,
       historyCurrentPage: 1,
       itemsPerPage: 5

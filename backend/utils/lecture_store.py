@@ -66,12 +66,13 @@ class LectureStore:
         if self.use_mongo:
             # MongoDB storage
             lecture = self.lectures.find_one({'video_id': video_id})
+
             return lecture
         else:
             # File-based storage
             with open(self.lectures_file, 'r') as f:
                 lectures = json.load(f)
-            
+
             return lectures.get(video_id)
     
     def save_playlist(self, playlist_id, playlist_data):

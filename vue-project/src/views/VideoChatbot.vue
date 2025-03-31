@@ -357,25 +357,56 @@
         this.currentVideo = video;
         this.isPlaying = true;
         
-        // Check if we have stored chat messages for this video
-        const savedChatMessages = JSON.parse(localStorage.getItem(`chatMessages_${video.id}`) || 'null');
+        // First ensure that this video's transcript is loaded
+        this.isLoading = true;
         
-        if (savedChatMessages && savedChatMessages.length) {
-          this.chatMessages = savedChatMessages;
-        } else {
-          // Reset chat messages when changing videos with no history
-          this.chatMessages = [
-            {
-              id: Date.now(),
-              type: 'ai',
-              text: `You are now watching "${video.title}". Feel free to ask any questions!`,
+        // Call the API to process this lecture and ensure its transcript is saved
+        fetch('http://127.0.0.1:3000/api/lecture', {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            ...this.getAuthToken().headers
+            },
+            body: JSON.stringify({
+            video_id: video.videoId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+            console.log('Video transcript loaded successfully');
+            
+            // Check if we have stored chat messages for this video
+            const savedChatMessages = JSON.parse(localStorage.getItem(`chatMessages_${video.id}`) || 'null');
+            
+            if (savedChatMessages && savedChatMessages.length) {
+                this.chatMessages = savedChatMessages;
+            } else {
+                // Reset chat messages when changing videos with no history
+                this.chatMessages = [
+                {
+                    id: Date.now(),
+                    type: 'ai',
+                    text: `You are now watching "${video.title}". Feel free to ask any questions!`,
+                }
+                ];
             }
-          ];
-        }
-        
-        // Save the current video state
-        this.saveSessionState();
-      },
+            
+            // Save the current video state
+            this.saveSessionState();
+            } else {
+            console.error('Error loading video transcript:', data.error);
+            alert(`Failed to load video transcript: ${data.error}`);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading video transcript:', error);
+            alert('Failed to load video transcript. Questions may not work properly.');
+        })
+        .finally(() => {
+            this.isLoading = false;
+        });
+    },
       
       toggleSidebar() {
         this.isSidebarHidden = !this.isSidebarHidden;

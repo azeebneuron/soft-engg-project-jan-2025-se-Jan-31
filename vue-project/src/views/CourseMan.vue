@@ -95,6 +95,7 @@
     },
     created() {
       this.fetchCourses();
+      this.checkAuthentication();
     },
     methods: {
       logoutUser() {
@@ -103,6 +104,12 @@
 
       // Redirect to sign-in page with a success message
       this.$router.push({ path: "/signin", query: { message: "logged_out" } });
+    },
+    checkAuthentication() {
+      const token = this.getAuthToken();
+      if (!token) {
+        this.$router.push('/signin');
+      }
     },
       // Create a constant for the authorization token
       getAuthToken() {

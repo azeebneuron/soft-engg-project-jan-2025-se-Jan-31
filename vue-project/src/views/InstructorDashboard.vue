@@ -93,23 +93,6 @@
           </div>
         </div>
 
-        <!-- Upcoming Classes -->
-        <!-- <div class="dashboard-card classes-card">
-          <div class="card-header">
-            <h2>Today's Schedule</h2>
-            <button class="view-all-btn" @click="viewFullSchedule">Full Schedule</button>
-          </div>
-          <div class="class-list">
-            <div v-for="class_ in upcomingClasses" :key="class_.id" class="class-item">
-              <div class="class-time">{{ class_.time }}</div>
-              <div class="class-info">
-                <h4>{{ class_.course }}</h4>
-                <p>{{ class_.room }}</p>
-              </div>
-            </div>
-          </div>
-        </div> -->
-
         <!-- Quick Actions -->
         <div class="dashboard-card quick-actions-card">
           <div class="card-header">
@@ -194,6 +177,7 @@ export default {
     this.fetchDashboardData();
     this.fetchCourses();
     this.fetchRecentFeedback();
+    this.checkAuthentication();
   },
   methods: {
     logoutUser() {
@@ -203,6 +187,11 @@ export default {
       // Redirect to sign-in page with a success message
       this.$router.push({ path: "/signin", query: { message: "logged_out" } });
     },
+
+    getAuthToken() {
+  // Retrieve the JWT token from localStorage
+    return localStorage.getItem('authToken');
+  },
     async fetchDashboardData() {
       try {
         const token = localStorage.getItem('authToken');
@@ -259,6 +248,12 @@ export default {
         }));
       } catch (error) {
         console.error('Error fetching feedback:', error);
+      }
+    },
+    checkAuthentication() {
+      const token = this.getAuthToken();
+      if (!token) {
+        this.$router.push('/signin');
       }
     },
     navigateToAnalytics() {
@@ -378,9 +373,11 @@ export default {
 
 /* AI Analytics Card */
 .ai-analytics-card {
-  grid-column: 1 / -1;
+  display: grid;
+  gap: 1.5rem;
   margin-bottom: 1.5rem;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
+  background: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
+  border: 1px solid rgba(56, 189, 248, 0.15);
 }
 
 .ai-features {
@@ -397,6 +394,12 @@ export default {
   background: rgba(255, 255, 255, 0.03);
   border-radius: 0.5rem;
   align-items: center;
+  transition: transform 0.2s;
+}
+
+.feature-item:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .feature-icon {
@@ -406,7 +409,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.05);
+  background: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
   border-radius: 50%;
 }
 
@@ -435,6 +438,18 @@ export default {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.courses-card {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(168, 85, 247, 0.05));
+}
+
+.feedback-card {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.05), rgba(239, 68, 68, 0.05));
+}
+
+.quick-actions-card {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(5, 150, 105, 0.05));
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -456,6 +471,12 @@ export default {
   padding: 1rem;
   background: rgba(255, 255, 255, 0.03);
   border-radius: 0.5rem;
+  transition: transform 0.2s;
+}
+
+.course-item:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .course-info h4 {
@@ -479,6 +500,12 @@ export default {
   padding: 1rem;
   background: rgba(255, 255, 255, 0.03);
   border-radius: 0.5rem;
+  transition: transform 0.2s;
+}
+
+.feedback-item:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .feedback-header {
@@ -567,6 +594,12 @@ export default {
   color: white;
   cursor: pointer;
   font-size: 0.9rem;
+  transition: transform 0.2s, opacity 0.3s;
+}
+
+.action-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
 }
 
 .view-all-btn {
@@ -575,6 +608,11 @@ export default {
   border: none;
   cursor: pointer;
   font-size: 0.9rem;
+  transition: opacity 0.3s;
+}
+
+.view-all-btn:hover {
+  opacity: 0.8;
 }
 
 .action-btn-small {
@@ -585,6 +623,11 @@ export default {
   color: rgb(99, 102, 241);
   cursor: pointer;
   font-size: 0.9rem;
+  transition: background 0.3s;
+}
+
+.action-btn-small:hover {
+  background: rgba(99, 102, 241, 0.3);
 }
 
 /* Footer */
@@ -594,6 +637,7 @@ export default {
   font-size: 0.8rem;
   color: var(--text-secondary-dark);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 2rem;
 }
 
 /* Light Mode Adjustments */
@@ -608,10 +652,27 @@ export default {
   border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
+.light-mode .ai-analytics-card {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.05), rgba(14, 165, 233, 0.05));
+}
+
+.light-mode .courses-card {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.03), rgba(168, 85, 247, 0.03));
+}
+
+.light-mode .feedback-card {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.03), rgba(239, 68, 68, 0.03));
+}
+
+.light-mode .quick-actions-card {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.03), rgba(5, 150, 105, 0.03));
+}
+
 .light-mode .course-item,
 .light-mode .feedback-item,
 .light-mode .class-item,
-.light-mode .quick-action-btn {
+.light-mode .quick-action-btn,
+.light-mode .feature-item {
   background: rgba(0, 0, 0, 0.03);
 }
 

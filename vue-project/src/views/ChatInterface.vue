@@ -131,6 +131,10 @@ export default {
         console.error('Error fetching conversations:', error);
       }
     },
+    getAuthToken() {
+  // Retrieve the JWT token from localStorage
+    return localStorage.getItem('authToken');
+  },
     async sendMessage() {
       if (!this.newMessage.trim() || this.isLoading) return;
       
@@ -254,7 +258,16 @@ export default {
     },
     toggleSidebar() {
       this.isSidebarHidden = !this.isSidebarHidden;
+    },
+    checkAuthentication() {
+      const token = this.getAuthToken();
+      if (!token) {
+        this.$router.push('/signin');
+      }
     }
+  },
+  created() {
+    this.checkAuthentication();
   }
 };
 </script>

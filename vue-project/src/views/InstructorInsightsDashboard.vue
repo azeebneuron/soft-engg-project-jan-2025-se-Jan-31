@@ -318,6 +318,9 @@ export default {
       return Math.ceil(Object.keys(this.insights.dashboard_data.courses).length / this.itemsPerPage);
     }
   },
+  created() {
+    this.checkAuthentication();
+  },
   mounted() {
     this.fetchInsights();
   },
@@ -336,6 +339,18 @@ export default {
       // Parse markdown and sanitize the resulting HTML
       const rawHtml = marked.parse(text);
       return DOMPurify.sanitize(rawHtml);
+    },
+
+    getAuthToken() {
+  // Retrieve the JWT token from localStorage
+    return localStorage.getItem('authToken');
+  },
+  
+    checkAuthentication() {
+      const token = this.getAuthToken();
+      if (!token) {
+        this.$router.push('/signin');
+      }
     },
     
     async fetchInsights() {

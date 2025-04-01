@@ -46,6 +46,16 @@ The main focus is on the AI insights for students and as well as instructors. Th
    pip install -r requirements.txt
    ```
 
+5. **Create environment variable for AI part**
+   ```bash
+   touch .env
+
+   'ADD THE FOLLOWING IN THE .env FILE'
+
+   GEMINI_API_KEY='YOUR API KEY'
+   YOUTUBE_API_KEY='YOUR API KEY'
+   ```
+
 5. **Run the development server**
    ```python3 app.py
    ```

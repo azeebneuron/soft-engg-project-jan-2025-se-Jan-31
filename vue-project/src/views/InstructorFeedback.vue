@@ -128,6 +128,7 @@ created() {
 
   // Fetch feedback when component is created
   this.fetchFeedback();
+  this.checkAuthentication();
 },
 methods: {
   logoutUser() {
@@ -136,6 +137,18 @@ methods: {
 
       // Redirect to sign-in page with a success message
       this.$router.push({ path: "/signin", query: { message: "logged_out" } });
+    },
+
+    getAuthToken() {
+  // Retrieve the JWT token from localStorage
+    return localStorage.getItem('authToken');
+  },
+  
+    checkAuthentication() {
+      const token = this.getAuthToken();
+      if (!token) {
+        this.$router.push('/signin');
+      }
     },
   async fetchFeedback() {
     this.loading = true;

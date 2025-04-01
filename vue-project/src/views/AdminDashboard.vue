@@ -291,10 +291,17 @@ export default {
     getAuthToken() {
       // Implement method to retrieve auth token from storage
       return localStorage.getItem('authToken');
+    },
+
+    checkAuthentication() {
+      const token = this.getAuthToken();
+      if (!token) {
+        this.$router.push('/signin');
+      }
     }
   },
-
   created() {
+    this.checkAuthentication();
     this.fetchUsers();
     this.fetchCourses();
   }

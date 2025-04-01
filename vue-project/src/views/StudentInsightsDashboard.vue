@@ -407,6 +407,7 @@ export default {
     this.initializeAuth();
     // Check system preference for dark mode
     this.isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    this.checkAuthentication();
   },
   mounted() {
     this.fetchInsights();
@@ -433,6 +434,18 @@ export default {
         if (this.$router) {
           this.$router.push('/login');
         }
+      }
+    },
+
+    getAuthToken() {
+  // Retrieve the JWT token from localStorage
+    return localStorage.getItem('authToken');
+  },
+
+    checkAuthentication() {
+      const token = this.getAuthToken();
+      if (!token) {
+        this.$router.push('/signin');
       }
     },
     

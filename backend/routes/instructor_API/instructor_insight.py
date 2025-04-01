@@ -12,8 +12,12 @@ from llm_integration import NarrativeGenerator
 # Load environment variables for API keys
 load_dotenv()
 
-# Initialize the analytics and narrative generator
-analytics = PerformanceAnalytics(data_path='/Users/sambhavjha/soft-engg-project-jan-2025-se-Jan-31/backend/data')
+# Get the current file's directory
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
+data_path = os.path.join(current_dir, '..', '..', 'data')
+
+analytics = PerformanceAnalytics(data_path=data_path)
 narrative_generator = NarrativeGenerator()
 
 class InstructorInsightAPI(Resource):

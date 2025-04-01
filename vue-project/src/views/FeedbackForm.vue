@@ -256,6 +256,17 @@ export default {
       const options = { year: 'numeric', month: 'long', day: 'numeric' };
       return new Date(dateString).toLocaleDateString(undefined, options);
     },
+    getAuthToken() {
+  // Retrieve the JWT token from localStorage
+    return localStorage.getItem('authToken');
+  },
+
+    checkAuthentication() {
+      const token = this.getAuthToken();
+      if (!token) {
+        this.$router.push('/signin');
+      }
+    }
   },
   computed: {
     isAuthenticated() {
@@ -266,6 +277,7 @@ export default {
     this.fetchFeedbacks();
     this.fetchInstructors();
     this.fetchCourses();
+    this.checkAuthentication();
   },
 };
 </script>

@@ -227,6 +227,18 @@ export default {
       const month = String(today.getMonth() + 1).padStart(2, '0');
       const day = String(today.getDate()).padStart(2, '0');
       return `${year}-${month}-${day}`;
+    },
+
+    getAuthToken() {
+  // Retrieve the JWT token from localStorage
+    return localStorage.getItem('authToken');
+  },
+  
+    checkAuthentication() {
+      const token = this.getAuthToken();
+      if (!token) {
+        this.$router.push('/signin');
+      }
     }
   },
   computed: {
@@ -239,6 +251,7 @@ export default {
     this.newDeadline.date = this.getCurrentDate();
     this.fetchCourses();
     this.fetchDeadlines();
+    this.checkAuthentication
   }
 };
 </script>

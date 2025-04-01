@@ -684,10 +684,11 @@ export default {
 .loading-indicator {
   width: 3rem;
   height: 3rem;
-  border: 0.25rem solid var(--card-border);
+  border: 0.25rem solid rgba(255, 255, 255, 0.1);
   border-radius: 50%;
   border-top-color: var(--primary);
   animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
 }
 
 .visually-hidden {
@@ -728,7 +729,7 @@ export default {
   padding: 1.5rem;
   border-radius: 1rem;
   border: 1px solid var(--card-border);
-  transition: transform 0.2s;
+  transition: transform 0.2s, box-shadow 0.3s;
 }
 
 .stat-card:hover {
@@ -740,7 +741,9 @@ export default {
   font-size: 2rem;
   font-weight: bold;
   margin: 0.5rem 0;
-  color: var(--primary);
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .stat-trend {
@@ -765,6 +768,24 @@ export default {
   padding: 1.5rem;
   border-radius: 1rem;
   border: 1px solid var(--card-border);
+  transition: transform 0.2s, box-shadow 0.3s;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-card:nth-child(3) {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(168, 85, 247, 0.05));
+}
+
+.dashboard-card:nth-child(4) {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.05), rgba(239, 68, 68, 0.05));
+}
+
+.dashboard-card:nth-child(5) {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(5, 150, 105, 0.05));
 }
 
 .card-header {
@@ -781,6 +802,10 @@ export default {
   align-items: center;
 }
 
+.card-header h2 i {
+  margin-right: 0.5rem;
+}
+
 .badge {
   padding: 0.25rem 0.75rem;
   background: var(--primary-gradient);
@@ -791,6 +816,7 @@ export default {
 
 .narrative-card {
   border-left: 4px solid var(--primary);
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(14, 165, 233, 0.1));
 }
 
 .narrative-content {
@@ -837,7 +863,7 @@ export default {
 .dashboard-table th {
   position: sticky;
   top: 0;
-  background: var(--card-bg);
+  background: rgba(0, 0, 0, 0.2);
   font-weight: bold;
   color: var(--text-secondary);
   z-index: 10;
@@ -867,17 +893,19 @@ export default {
   background-color: var(--item-bg);
   color: var(--text);
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
 }
 
 .pagination-btn:hover {
-  background-color: var(--primary);
+  background: var(--primary-gradient);
   color: white;
+  transform: translateY(-1px);
 }
 
 .pagination-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
 }
 
 /* Progress */
@@ -892,6 +920,7 @@ export default {
 .progress-bar {
   height: 100%;
   border-radius: 4px;
+  transition: width 0.3s ease;
 }
 
 .bg-primary {
@@ -929,6 +958,12 @@ export default {
   padding: 0.25rem 0.5rem;
   border-radius: 0.5rem;
   font-size: 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.2s;
+}
+
+.trend-badge:hover, .trimester-badge:hover, .grade-badge:hover {
+  transform: translateY(-1px);
 }
 
 .trend-up {
@@ -989,34 +1024,35 @@ export default {
 .action-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  opacity: 0.9;
 }
 
 .action-btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+  transform: none;
 }
 
-/* Completing the CSS styles that were cut off */
-
 .action-btn-small {
-  padding: 0.25rem 0.75rem;
-  font-size: 0.8rem;
-  background: transparent;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  background: rgba(99, 102, 241, 0.2);
   color: var(--primary);
-  border: 1px solid var(--primary);
+  border: none;
   border-radius: 0.5rem;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .action-btn-small:hover {
-  background-color: var(--primary);
-  color: white;
+  background: rgba(99, 102, 241, 0.3);
+  transform: translateY(-1px);
 }
 
 /* Recommendation Card Styles */
 .recommendation-card {
   border-left: 4px solid var(--warning);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.05), rgba(249, 115, 22, 0.05));
 }
 
 /* Footer Styles */
@@ -1026,12 +1062,71 @@ export default {
   padding: 1.5rem;
   color: var(--text-secondary);
   font-size: 0.9rem;
+  border-top: 1px solid var(--card-border);
 }
 
 /* Animations */
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* Scrollbar Styling */
+.table-container::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: var(--item-bg);
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: var(--text-secondary);
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* Empty State Styling */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+  background: var(--item-bg);
+  border-radius: 0.5rem;
+  min-height: 150px;
+}
+
+.empty-icon, .empty-state-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  opacity: 0.7;
+}
+
+.empty-state p, .empty-state-message {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+/* Utility classes */
+.me-1 {
+  margin-right: 0.25rem;
+}
+
+.me-2 {
+  margin-right: 0.5rem;
+}
+
+.mt-4 {
+  margin-top: 1rem;
 }
 
 /* Responsive Adjustments */
@@ -1043,10 +1138,10 @@ export default {
   .dashboard-header {
     flex-direction: column;
     align-items: flex-start;
+    gap: 1rem;
   }
   
   .header-actions {
-    margin-top: 1rem;
     width: 100%;
   }
   
@@ -1069,43 +1164,24 @@ export default {
     padding: 0.75rem 0.5rem;
     font-size: 0.9rem;
   }
-  
-  .action-btn-small {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.75rem;
-  }
 }
 
-/* Print Styles */
-@media print {
-  .dashboard-container {
-    padding: 0;
-    background: white;
-  }
-  
-  .dashboard-content {
-    max-width: 100%;
-  }
-  
-  .action-btn,
-  .action-btn-small,
-  .pagination-controls,
-  .recommendation-card,
-  .dashboard-footer {
-    display: none;
-  }
-  
-  .dashboard-card {
-    page-break-inside: avoid;
-    border: 1px solid #ddd;
-    margin-bottom: 15px;
-    background: white;
-  }
-  
-  .table-container {
-    max-height: none;
-    overflow: visible;
-  }
+/* Light Mode Adjustments */
+.light-mode .dashboard-table th {
+  background: rgba(240, 240, 240, 0.9);
+  color: var(--text-secondary);
+}
+
+.light-mode .progress {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.light-mode .dashboard-table tr:hover {
+  background-color: rgba(99, 102, 241, 0.05);
+}
+
+.dark-mode .dashboard-table tr:hover {
+  background-color: rgba(99, 102, 241, 0.1);
 }
 
 /* Accessibility Enhancements */
@@ -1124,43 +1200,12 @@ export default {
   width: 1px;
 }
 
-/* Dark Mode Specific Adjustments */
-.dark-mode .dashboard-table th {
-  box-shadow: 0 1px 0 var(--card-border);
-}
-
-/* Custom Scrollbar for Dark Mode */
-.dark-mode ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.dark-mode ::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.dark-mode ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
-}
-
-.dark-mode ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-/* Light Mode Specific Adjustments */
-.light-mode .dashboard-card {
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
-
-/* Add subtle hover effect for cards */
-.dashboard-card {
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.dashboard-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+/* Course Progress Custom Styling */
+.course-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
 }
 
 /* Skeleton Loading Animation */
@@ -1174,35 +1219,5 @@ export default {
   animation: pulse 1.5s infinite;
   background: var(--item-bg);
   border-radius: 4px;
-}
-
-/* Course Progress Custom Styling */
-.course-progress-label {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.8rem;
-  margin-top: 0.25rem;
-}
-
-/* Empty State Styling */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 1rem;
-  color: var(--text-secondary);
-}
-
-.empty-state-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  opacity: 0.3;
-}
-
-.empty-state-message {
-  text-align: center;
-  max-width: 300px;
-  line-height: 1.5;
 }
 </style>

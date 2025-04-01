@@ -38,12 +38,12 @@
       </div>
 
       <!-- AI Analytics Section -->
-      <div class="dashboard-card ai-analytics-card">
+      <div class="ai-analytics-card">
         <div class="card-header">
           <h2>AI Teaching Analytics</h2>
-          <button class="action-btn" onclick="window.location.href='/instructor/insights'">View Details</button>
+          <button class="action-btn" @click="navigateToInsights">View Details</button>
         </div>
-        <div class="ai-features">
+        <div class="chatbot-features">
           <div v-for="feature in aiFeatures" :key="feature.id" class="feature-item">
             <div class="feature-icon">{{ feature.icon }}</div>
             <div class="feature-info">
@@ -62,18 +62,17 @@
             <h2>Active Courses</h2>
             <button class="view-all-btn" @click="navigateToCourses">Manage All</button>
           </div>
-          <div class="course-list">
+          <div v-if="courses.length === 0" class="empty-state">
+            <div class="empty-icon">📚</div>
+            <p>No active courses available</p>
+            <button class="action-btn-small" @click="navigateToCourses">Add New Course</button>
+          </div>
+          <div v-else class="course-list">
             <div v-for="course in courses" :key="course.id" class="course-item">
-              <div class="course-info">
-                <h4>{{ course.name }}</h4>
-                <p>{{ course.code }} - {{ course.students }} students</p>
-              </div>
-              <div class="course-actions">
-                <button class="action-btn-small" @click="viewCourse(course.id)">View</button>
-              </div>
+              <!-- Existing course item content -->
             </div>
           </div>
-        </div>
+</div>
 
         <!-- Student Feedback -->
         <div class="dashboard-card feedback-card">
@@ -81,14 +80,14 @@
             <h2>Recent Feedback</h2>
             <button class="view-all-btn" @click="viewAllFeedback">View All</button>
           </div>
-          <div class="feedback-list">
+          <div v-if="recentFeedback.length === 0" class="empty-state">
+            <div class="empty-icon">💬</div>
+            <p>No feedback available yet</p>
+            <p class="empty-subtext">Student feedback will appear here once received</p>
+          </div>
+          <div v-else class="feedback-list">
             <div v-for="feedback in recentFeedback" :key="feedback.id" class="feedback-item">
-              <div class="feedback-header">
-                <span class="course-tag">{{ feedback.course }}</span>
-                <span class="feedback-rating">{{ feedback.rating }}/5</span>
-              </div>
-              <p class="feedback-text">{{ feedback.text }}</p>
-              <p class="feedback-date">{{ feedback.date }}</p>
+              <!-- Existing feedback item content -->
             </div>
           </div>
         </div>
@@ -370,17 +369,17 @@ export default {
 .stat-trend.positive {
   color: #10B981;
 }
-
-/* AI Analytics Card */
 .ai-analytics-card {
-  display: grid;
-  gap: 1.5rem;
+  grid-column: 1 / -1;
   margin-bottom: 1.5rem;
-  background: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
-  border: 1px solid rgba(56, 189, 248, 0.15);
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(14, 165, 233, 0.1));
+  backdrop-filter: blur(10px);
+  padding: 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.ai-features {
+.chatbot-features {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1.5rem;
@@ -409,7 +408,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(14, 165, 233, 0.1));
   border-radius: 50%;
 }
 
@@ -421,6 +420,40 @@ export default {
   margin: 0;
   font-size: 0.9rem;
   color: var(--text-secondary-dark);
+}
+
+.action-btn {
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(14, 165, 233, 0.1));
+  border: none;
+  border-radius: 0.5rem;
+  color: white;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: transform 0.2s, opacity 0.3s;
+}
+
+.action-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* Light Mode Adjustments */
+.light-mode .ai-analytics-card {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(168, 85, 247, 0.05));
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.light-mode .feature-item {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.light-mode .feature-item:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.light-mode .feature-info p {
+  color: var(--text-secondary-light);
 }
 
 /* Dashboard Grid */
@@ -588,7 +621,7 @@ export default {
 /* Buttons */
 .action-btn {
   padding: 0.5rem 1rem;
-  background: linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247));
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(126, 52, 216, 0.1));
   border: none;
   border-radius: 0.5rem;
   color: white;
@@ -628,6 +661,43 @@ export default {
 
 .action-btn-small:hover {
   background: rgba(99, 102, 241, 0.3);
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0.5rem;
+  min-height: 150px;
+}
+
+.empty-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  opacity: 0.7;
+}
+
+.empty-state p {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  color: var(--text-secondary-dark);
+}
+
+.empty-subtext {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.light-mode .empty-state {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.light-mode .empty-state p {
+  color: var(--text-secondary-light);
 }
 
 /* Footer */

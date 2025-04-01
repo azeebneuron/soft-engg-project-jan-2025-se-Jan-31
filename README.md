@@ -57,11 +57,12 @@ The main focus is on the AI insights for students and as well as instructors. Th
    ```
 
 5. **Run the development server**
-   ```python3 app.py
+   ```
+   python3 app.py
    ```
 
 ### Home Page
-![Home Page](./Samples/home.png)
+![Home Page](./Samples/Home.png)
 
 ### Sign In
 ![Sign In](./Samples/signin.png)
@@ -78,10 +79,10 @@ The main focus is on the AI insights for students and as well as instructors. Th
 ![Feedback Form](./Samples/feedback-students.png)
 
 ### Deadline Section
-![Deadline Section](./Samples/deadline.png)
+![Deadline Section](./Samples/Deadline.png)
 
 ### Student AI Insights
-![AI Insights](./Samples/student-insights.png)
+![AI Insights](./Samples/students-insights.png)
 
 ![AI Insights Continued](./Samples/student-insights-continued.png)
 
@@ -92,7 +93,7 @@ The main focus is on the AI insights for students and as well as instructors. Th
 ![Videobot Interface](./Samples/videobot.png)
 
 ### Instructor Dashboard
-![Instructor Dashboard](./Samples/instructor-dashboard.png)
+![Instructor Dashboard](./Samples/instructor-daashboard.png)
 
 ## Instructor AI Insights
 ![AI Insights](./Samples/instructor-insights.png)

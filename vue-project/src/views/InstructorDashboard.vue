@@ -261,6 +261,9 @@ export default {
     navigateToCourses() {
       this.$router.push('/courseman');
     },
+    navigateToInsights() {
+    this.$router.push('/instructor/insights');
+    },
     viewCourse(courseId) {
       this.$router.push(`/course/${courseId}`);
     },

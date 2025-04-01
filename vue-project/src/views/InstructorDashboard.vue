@@ -111,7 +111,7 @@
     </div>
 
     <footer class="dashboard-footer">
-      Updated with ❤️ by Dobby The Free-Elf
+      Made with ❤️ by DevAstators
     </footer>
   </div>
 </template>

@@ -105,6 +105,10 @@ export default {
 
         this.successMessage = response.data.message;
         console.log('Sign up success:', response.data);
+
+        //redirect to sign in page after successful signup
+        this.$router.push('/signin');
+
       } catch (error) {
         this.errorMessage = error.response?.data?.error || 'Signup failed. Please try again.';
         console.error('Sign up error:', error);

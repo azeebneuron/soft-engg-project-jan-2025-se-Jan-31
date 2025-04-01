@@ -556,17 +556,6 @@
         });
       });
     },
-
-    // Add method to the created/mounted lifecycle hook
-    created() {
-      // Check authentication when component is created
-      this.checkAuthentication();
-      
-      // Load marked library
-      this.loadMarkedLibrary()
-        .then(() => console.log('Markdown library loaded'))
-        .catch(error => console.error('Failed to load markdown library:', error));
-    },
       
       scrollToBottom() {
         const container = this.$refs.messageContainer;
@@ -773,30 +762,78 @@
     background: #5152ce;
   }
   
-  .playlist-selector {
-    margin: 0 1.5rem 1rem;
-    position: relative;
-    z-index: 20;
-  }
-  
-  .playlist-select {
-    width: 100%;
-    padding: 0.75rem;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 0.5rem;
-    color: white;
-    font-size: 0.9rem;
-    cursor: pointer;
-    appearance: auto;
-  }
-  
-  .playlist-select:focus {
-    outline: none;
-    border-color: rgba(99, 102, 241, 0.5);
-    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
-  }
-  
+/* Updated styling for the playlist selector to ensure dropdown visibility */
+.playlist-selector {
+  margin: 0 1.5rem 1rem;
+  position: relative;
+  z-index: 20;
+}
+
+.playlist-select {
+  width: 100%;
+  padding: 0.75rem;
+  background: rgba(30, 30, 30, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  color: white;
+  font-size: 0.9rem;
+  cursor: pointer;
+  appearance: none; /* Changed from auto to none for better cross-browser compatibility */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1em;
+  padding-right: 2.5rem;
+}
+
+/* Create a custom dropdown using absolute positioning */
+/* Enhanced dropdown styling to ensure visibility */
+.playlist-selector {
+  margin: 0 1.5rem 1rem;
+  position: relative;
+  z-index: 30; /* Increased z-index to ensure dropdown appears above other elements */
+}
+
+.playlist-select {
+  width: 100%;
+  padding: 0.75rem;
+  background: rgba(30, 30, 30, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  color: white;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  appearance: none; /* Ensures cross-browser compatibility */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1em;
+}
+
+/* Ensure dropdown options are visible */
+.playlist-select option {
+  background-color: #242424;
+  color: white;
+  padding: 10px;
+  font-size: 0.9375rem;
+}
+
+/* When the select is focused */
+.playlist-select:focus {
+  outline: none;
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+}
+
+/* Adding a hover effect */
+.playlist-select:hover {
+  background-color: rgba(40, 40, 40, 0.9);
+}
+
+/* For modern browsers that support select:focus-within */
+.playlist-selector:focus-within {
+  z-index: 30;
+}
   .playlist-list-container {
     flex: 1;
     overflow: hidden;

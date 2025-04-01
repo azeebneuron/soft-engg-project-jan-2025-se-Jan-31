@@ -331,6 +331,7 @@ export default {
   },
   created() {
     this.fetchDeadlines();
+    this.checkAuthentication();
   },
   methods: {
     logoutUser() {
@@ -340,6 +341,19 @@ export default {
       // Redirect to sign-in page with a success message
       this.$router.push({ path: "/signin", query: { message: "logged_out" } });
     },
+
+    getAuthToken() {
+  // Retrieve the JWT token from localStorage
+    return localStorage.getItem('authToken');
+  },
+
+    checkAuthentication() {
+      const token = this.getAuthToken();
+      if (!token) {
+        this.$router.push('/signin');
+      }
+    },
+
     fetchDeadlines() {
       this.isLoadingDeadlines = true;
       this.deadlineError = null;

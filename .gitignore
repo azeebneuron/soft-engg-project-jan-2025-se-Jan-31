@@ -7,7 +7,6 @@ envback/
 instance/
 uploads/
 env1/
-*.txt
 venv/
-.DS_Store/
-backend/.DS_Store/
+.DS_Store
+backend/.DS_Store

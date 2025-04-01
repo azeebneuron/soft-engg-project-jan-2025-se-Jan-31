@@ -328,7 +328,7 @@ export default {
     this.renderCharts();
   },
   methods: {
-    // New method for rendering markdown
+    // Method for rendering markdown
     renderMarkdown(text) {
       // Configure marked options if needed
       marked.setOptions({
@@ -342,10 +342,10 @@ export default {
     },
 
     getAuthToken() {
-  // Retrieve the JWT token from localStorage
-    return localStorage.getItem('authToken');
-  },
-  
+      // Retrieve the JWT token from localStorage
+      return localStorage.getItem('authToken');
+    },
+    
     checkAuthentication() {
       const token = this.getAuthToken();
       if (!token) {
@@ -462,7 +462,7 @@ export default {
       data.sort((a, b) => b.count - a.count);
       
       // Set up dimensions with more padding for labels
-      const margin = { top: 30, right: 40, bottom: 90, left: 60 };
+      const margin = { top: 30, right: 30, bottom: 90, left: 40 };
       const width = this.$refs.riskFactorChart.clientWidth - margin.left - margin.right;
       const height = 300 - margin.top - margin.bottom;
       
@@ -485,8 +485,8 @@ export default {
         .domain([0, d3.max(data, d => d.count) * 1.1])
         .range([height, 0]);
       
-      // Color scale using a harmonious palette
-      const colorPalette = ['#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe', '#4f46e5', '#818cf8', '#38bdf8'];
+      // Use improved color palette that matches dashboard theme
+      const colorPalette = ['#8b5cf6', '#a78bfa', '#c4b5fd', '#7c3aed', '#6d28d9', '#5b21b6'];
       const color = d3.scaleOrdinal()
         .domain(data.map(d => d.name))
         .range(colorPalette);
@@ -498,17 +498,7 @@ export default {
         .selectAll("text")
         .attr("transform", "translate(-10,5)rotate(-45)")
         .style("text-anchor", "end")
-        .style("font-size", "11px")
-        .style("font-weight", "bold");
-      
-      // Add X axis label
-      svg.append("text")
-        .attr("text-anchor", "middle")
-        .attr("x", width / 2)
-        .attr("y", height + margin.bottom - 10)
-        .style("font-size", "12px")
-        .style("font-weight", "bold")
-        .text("Risk Factors");
+        .style("font-size", "11px");
       
       // Add Y axis with better spacing
       svg.append("g")
@@ -516,15 +506,15 @@ export default {
         .selectAll("text")
         .style("font-size", "11px");
       
-      // Add Y axis label
-      svg.append("text")
-        .attr("text-anchor", "middle")
-        .attr("transform", "rotate(-90)")
-        .attr("y", -margin.left + 15)
-        .attr("x", -height / 2)
-        .style("font-size", "12px")
-        .style("font-weight", "bold")
-        .text("Number of Students");
+      // Add grid lines for better readability
+      svg.append("g")
+        .attr("class", "grid")
+        .attr("opacity", 0.1)
+        .call(d3.axisLeft(y)
+          .ticks(5)
+          .tickSize(-width)
+          .tickFormat("")
+        );
       
       // Create gradient for bars
       const defs = svg.append("defs");
@@ -573,15 +563,6 @@ export default {
         .style("font-size", "10px")
         .style("font-weight", "bold")
         .text(d => d.count);
-      
-      // Add title
-      svg.append("text")
-        .attr("x", width / 2)
-        .attr("y", -10)
-        .attr("text-anchor", "middle")
-        .style("font-size", "14px")
-        .style("font-weight", "bold")
-        .text("Distribution of Risk Factors");
     },
     
     renderCoursePerformanceChart() {
@@ -619,10 +600,10 @@ export default {
       // Define metrics to display with nicer colors
       const metrics = ["Pass Rate", "Attendance"];
       
-      // Color palette that is more harmonious
+      // Use color palette that matches dashboard theme
       const colorPalette = {
-        "Pass Rate": "#3b82f6",  // Blue
-        "Attendance": "#10b981"  // Green
+        "Pass Rate": "#8b5cf6",   // Purple - matches primary gradient color
+        "Attendance": "#ec4899"   // Pink - matches secondary gradient color
       };
       
       // Set up scales
@@ -635,23 +616,23 @@ export default {
         .domain([0, 100])
         .range([height, 0]);
       
+      // Add grid lines for better readability
+      svg.append("g")
+        .attr("class", "grid")
+        .attr("opacity", 0.1)
+        .call(d3.axisLeft(y)
+          .ticks(5)
+          .tickSize(-width)
+          .tickFormat("")
+        );
+      
       // Add smooth curve between points
       const line = d3.line()
         .x(d => x(d.course) + x.bandwidth() / 2)
         .y(d => y(d.value))
         .curve(d3.curveMonotoneX);  // Smoother curve
       
-      // Add grid lines for better readability
-      svg.append("g")
-        .attr("class", "grid")
-        .call(d3.axisLeft(y)
-          .ticks(5)
-          .tickSize(-width)
-          .tickFormat("")
-        )
-        .style("stroke", "rgba(255, 255, 255, 0.1)");
-      
-      // Create lines for each metric with improved styling
+      // Create lines for each metric
       metrics.forEach(metric => {
         const metricData = topCourses.map(course => {
           const metricObj = course.metrics.find(m => m.name === metric);
@@ -680,7 +661,7 @@ export default {
           .attr("offset", "100%")
           .attr("stop-color", colorPalette[metric]);
         
-        // Draw line with better styling
+        // Draw line with improved styling
         svg.append("path")
           .datum(metricData)
           .attr("fill", "none")
@@ -728,39 +709,11 @@ export default {
         .style("text-anchor", "end")
         .style("font-size", "11px");
       
-      // Add X axis label
-      svg.append("text")
-        .attr("text-anchor", "middle")
-        .attr("x", width / 2)
-        .attr("y", height + margin.bottom - 10)
-        .style("font-size", "12px")
-        .style("font-weight", "bold")
-        .text("Courses");
-      
       // Add Y axis with better formatting
       svg.append("g")
         .call(d3.axisLeft(y).ticks(5).tickFormat(d => d + "%"))
         .selectAll("text")
         .style("font-size", "11px");
-      
-      // Add Y axis label
-      svg.append("text")
-        .attr("transform", "rotate(-90)")
-        .attr("y", -margin.left + 20)
-        .attr("x", -height / 2)
-        .attr("text-anchor", "middle")
-        .style("font-size", "12px")
-        .style("font-weight", "bold")
-        .text("Percentage (%)");
-      
-      // Add chart title
-      svg.append("text")
-        .attr("x", width / 2)
-        .attr("y", -20)
-        .attr("text-anchor", "middle")
-        .style("font-size", "14px")
-        .style("font-weight", "bold")
-        .text("Course Performance Comparison");
       
       // Add more elegant legend
       const legend = svg.append("g")
@@ -789,14 +742,7 @@ export default {
   }
 };
 </script>
-
 <style scoped>
-.dashboard-container {
-  min-height: 100vh;
-  padding: 2rem;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
 /* Theme Variables */
 .dark-mode {
   --background: #121212;
@@ -828,6 +774,12 @@ export default {
   --item-bg: rgba(0, 0, 0, 0.03);
   background-color: var(--background);
   color: var(--text);
+}
+
+.dashboard-container {
+  min-height: 100vh;
+  padding: 2rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .dashboard-content {
@@ -862,6 +814,43 @@ export default {
   margin-left: 0.5rem;
 }
 
+/* Action Button Styling */
+.action-btn {
+  padding: 0.5rem 1rem;
+  background: var(--primary-gradient);
+  border: none;
+  border-radius: 0.5rem;
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.action-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn-small {
+  padding: 0.375rem 0.75rem;
+  background: rgba(99, 102, 241, 0.2);
+  border: none;
+  border-radius: 0.5rem;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.3s;
+}
+
+.action-btn-small:hover {
+  background: rgba(99, 102, 241, 0.3);
+}
+
 /* Loading Container */
 .loading-container {
   display: flex;
@@ -871,10 +860,19 @@ export default {
   padding: 50px 0;
 }
 
-.spinner-border {
+.loading-indicator {
   width: 3rem;
   height: 3rem;
-  color: var(--primary);
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top-color: var(--primary);
+  animation: spin 1s infinite linear;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* Alert Container */
@@ -889,7 +887,7 @@ export default {
   color: var(--danger);
 }
 
-/* Stats Grid */
+/* Stats Grid - update to match InstructorDashboard */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -915,7 +913,9 @@ export default {
   font-size: 2rem;
   font-weight: bold;
   margin: 0.5rem 0;
-  color: var(--primary);
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .stat-trend {
@@ -927,19 +927,71 @@ export default {
   color: var(--success);
 }
 
-/* Dashboard Cards */
-.dashboard-main {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
+/* Narrative Card - using AI analytics style */
+.narrative-card {
+  margin-bottom: 1.5rem;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(14, 165, 233, 0.1));
+  backdrop-filter: blur(10px);
+  padding: 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid var(--card-border);
+  border-left: 4px solid var(--primary);
 }
 
+.narrative-content {
+  line-height: 1.6;
+}
+
+.narrative-paragraph {
+  margin-bottom: 15px;
+}
+
+/* Markdown rendering styles */
+.narrative-paragraph :deep(h1),
+.narrative-paragraph :deep(h2),
+.narrative-paragraph :deep(h3),
+.narrative-paragraph :deep(h4) {
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.narrative-paragraph :deep(strong) {
+  font-weight: 600;
+}
+
+.narrative-paragraph :deep(a) {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.narrative-paragraph :deep(a:hover) {
+  text-decoration: underline;
+}
+
+.narrative-paragraph :deep(code) {
+  font-family: monospace;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.25rem;
+}
+
+.narrative-paragraph :deep(blockquote) {
+  border-left: 4px solid var(--primary);
+  padding-left: 1rem;
+  margin-left: 0;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* Dashboard Cards */
 .dashboard-card {
   background: var(--card-bg);
   backdrop-filter: blur(10px);
   padding: 1.5rem;
   border-radius: 1rem;
   border: 1px solid var(--card-border);
+  margin-bottom: 1.5rem;
 }
 
 .card-header {
@@ -964,156 +1016,11 @@ export default {
   font-size: 0.8rem;
 }
 
-.narrative-card {
-  border-left: 4px solid var(--primary);
+/* Custom card gradients to match InstructorDashboard */
+.card-body {
+  position: relative;
 }
 
-/* Markdown Content Styling */
-.narrative-content {
-  line-height: 1.6;
-  color: var(--text);
-}
-
-.narrative-paragraph {
-  margin-bottom: 15px;
-}
-
-/* Markdown Elements */
-.narrative-paragraph h1,
-.narrative-paragraph h2,
-.narrative-paragraph h3,
-.narrative-paragraph h4,
-.narrative-paragraph h5,
-.narrative-paragraph h6 {
-  margin-top: 1.5rem;
-  margin-bottom: 0.75rem;
-  font-weight: 600;
-  line-height: 1.3;
-}
-
-.narrative-paragraph h1 {
-  font-size: 1.8rem;
-  border-bottom: 1px solid var(--card-border);
-  padding-bottom: 0.3rem;
-}
-
-.narrative-paragraph h2 {
-  font-size: 1.5rem;
-  border-bottom: 1px solid var(--card-border);
-  padding-bottom: 0.3rem;
-}
-
-.narrative-paragraph h3 {
-  font-size: 1.3rem;
-}
-
-.narrative-paragraph h4 {
-  font-size: 1.1rem;
-}
-
-.narrative-paragraph p {
-  margin-bottom: 1rem;
-}
-
-.narrative-paragraph a {
-  color: var(--primary);
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.narrative-paragraph a:hover {
-  text-decoration: underline;
-}
-
-.narrative-paragraph strong,
-.narrative-paragraph b {
-  font-weight: 600;
-}
-
-.narrative-paragraph em,
-.narrative-paragraph i {
-  font-style: italic;
-}
-
-.narrative-paragraph code {
-  font-family: monospace;
-  background: var(--item-bg);
-  padding: 0.1rem 0.3rem;
-  border-radius: 0.25rem;
-  font-size: 0.9em;
-}
-
-.narrative-paragraph pre {
-  background: var(--item-bg);
-  padding: 1rem;
-  border-radius: 0.5rem;
-  overflow-x: auto;
-  margin: 1rem 0;
-}
-
-.narrative-paragraph pre code {
-  background: transparent;
-  padding: 0;
-  border-radius: 0;
-}
-
-.narrative-paragraph blockquote {
-  border-left: 4px solid var(--primary);
-  padding-left: 1rem;
-  margin-left: 0;
-  color: var(--text-secondary);
-  font-style: italic;
-}
-
-.narrative-paragraph ul,
-.narrative-paragraph ol {
-  margin-bottom: 1rem;
-  padding-left: 1.5rem;
-}
-
-.narrative-paragraph li {
-  margin-bottom: 0.5rem;
-}
-
-.narrative-paragraph table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 1rem 0;
-}
-
-.narrative-paragraph table th,
-.narrative-paragraph table td {
-  padding: 0.5rem;
-  border: 1px solid var(--card-border);
-}
-
-.narrative-paragraph table th {
-  background: var(--item-bg);
-  font-weight: 600;
-}
-
-.narrative-paragraph hr {
-  border: 0;
-  height: 1px;
-  background: var(--card-border);
-  margin: 1.5rem 0;
-}
-
-.narrative-paragraph img {
-  max-width: 100%;
-  height: auto;
-  border-radius: 0.5rem;
-  display: block;
-  margin: 1rem 0;
-}
-
-.placeholder-content {
-  padding: 1.5rem;
-  text-align: center;
-  color: var(--text-secondary);
-}
-
-/* Table Section */
 .table-section {
   display: flex;
   flex-direction: column;
@@ -1121,7 +1028,7 @@ export default {
 }
 
 .table-container {
-  max-height: 400px;
+  max-height: 350px;
   overflow-y: auto;
   border-radius: 0.5rem;
   border: 1px solid var(--card-border);
@@ -1143,7 +1050,7 @@ export default {
 .dashboard-table th {
   position: sticky;
   top: 0;
-  background: var(--card-bg);
+  background: rgba(0, 0, 0, 0.2);
   font-weight: bold;
   color: var(--text-secondary);
   z-index: 10;
@@ -1151,6 +1058,73 @@ export default {
 
 .dashboard-table tr:hover {
   background: var(--item-bg);
+}
+
+/* Risk Score */
+.risk-score {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.progress {
+  flex: 1;
+  height: 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: 4px;
+}
+
+.bg-danger {
+  background-color: var(--danger);
+}
+
+.bg-warning {
+  background-color: var(--warning);
+}
+
+.bg-success {
+  background-color: var(--success);
+}
+
+.bg-secondary {
+  background-color: var(--text-secondary);
+}
+
+/* Factor badges */
+.factor-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  margin: 0.25rem;
+  font-size: 0.8rem;
+  background-color: var(--item-bg);
+  border-radius: 0.5rem;
+  color: var(--text-secondary);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  transition: all 0.2s ease;
+}
+
+.factor-badge:hover {
+  background-color: rgba(99, 102, 241, 0.1);
+  transform: translateY(-1px);
+}
+
+/* Text Colors */
+.text-danger {
+  color: var(--danger);
+}
+
+.text-warning {
+  color: var(--warning);
+}
+
+.text-success {
+  color: var(--success);
 }
 
 /* Pagination Controls */
@@ -1173,216 +1147,193 @@ export default {
   background-color: var(--item-bg);
   color: var(--text);
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
 }
 
-
 .pagination-btn:hover {
-background-color: var(--primary);
-color: white;
+  background: var(--primary-gradient);
+  color: white;
+  transform: translateY(-1px);
 }
 
 .pagination-btn:disabled {
-opacity: 0.5;
-cursor: not-allowed;
-}
-
-/* Risk Score */
-.risk-score {
-display: flex;
-align-items: center;
-gap: 0.5rem;
-}
-
-.progress {
-flex: 1;
-height: 8px;
-background-color: var(--item-bg);
-border-radius: 4px;
-overflow: hidden;
-}
-
-.progress-bar {
-height: 100%;
-border-radius: 4px;
-}
-
-.bg-danger {
-background-color: var(--danger);
-}
-
-.bg-warning {
-background-color: var(--warning);
-}
-
-.bg-success {
-background-color: var(--success);
-}
-
-.bg-secondary {
-background-color: var(--text-secondary);
-}
-
-/* Badges */
-.factor-badge {
-display: inline-block;
-padding: 0.25rem 0.5rem;
-margin: 0.25rem;
-font-size: 0.8rem;
-background-color: var(--item-bg);
-border-radius: 0.5rem;
-color: var(--text-secondary);
-}
-
-/* Text Colors */
-.text-danger {
-color: var(--danger);
-}
-
-.text-warning {
-color: var(--warning);
-}
-
-.text-success {
-color: var(--success);
-}
-
-/* Buttons */
-.action-btn {
-display: flex;
-align-items: center;
-padding: 0.5rem 1rem;
-background: var(--primary-gradient);
-color: white;
-border: none;
-border-radius: 0.5rem;
-cursor: pointer;
-font-weight: bold;
-transition: opacity 0.2s;
-}
-
-.action-btn:hover {
-opacity: 0.9;
-}
-
-.action-btn-small {
-padding: 0.375rem 0.75rem;
-background: var(--primary);
-color: white;
-border: none;
-border-radius: 0.5rem;
-font-size: 0.875rem;
-cursor: pointer;
-transition: opacity 0.2s;
-}
-
-.action-btn-small:hover {
-opacity: 0.9;
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
 /* Charts */
 .chart-container {
-margin-top: 1.5rem;
+  margin-top: 1.5rem;
 }
 
 .chart-title {
-font-size: 1.1rem;
-margin-bottom: 1rem;
-color: var(--text);
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: var(--text);
 }
 
 .chart-wrapper {
-width: 100%;
-height: 300px;
-background: var(--item-bg);
-border-radius: 0.5rem;
-padding: 1rem;
+  width: 100%;
+  height: 300px;
+  background: var(--item-bg);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.chart-wrapper:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Placeholder content */
+.placeholder-content {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--text-secondary);
 }
 
 /* Footer */
 .dashboard-footer {
-text-align: center;
-padding: 2rem 0;
-margin-top: 2rem;
-font-size: 0.9rem;
-color: var(--text-secondary);
-}
-
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-.dashboard-container {
+  text-align: center;
   padding: 1rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--card-border);
+  margin-top: 2rem;
 }
 
-.dashboard-header {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 1rem;
+/* Light Mode Adjustments for charts */
+.light-mode .chart-wrapper {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--card-border);
 }
 
-.stats-grid {
-  grid-template-columns: 1fr;
+.light-mode .dashboard-table th {
+  background: rgba(240, 240, 240, 0.9);
+  color: var(--text-secondary);
 }
 
-.dashboard-table th,
-.dashboard-table td {
-  padding: 0.75rem 0.5rem;
-  font-size: 0.9rem;
+.light-mode .progress {
+  background-color: rgba(0, 0, 0, 0.1);
 }
 
-.card-header {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.5rem;
-}
+.light-mode .factor-badge {
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
-/* Additional Improvements */
-.header-actions {
-display: flex;
-gap: 0.5rem;
+/* Make table more visually appealing */
+.light-mode .dashboard-table tr:hover {
+  background-color: rgba(99, 102, 241, 0.05);
 }
 
-.me-1 {
-margin-right: 0.25rem;
+.dark-mode .dashboard-table tr:hover {
+  background-color: rgba(99, 102, 241, 0.1);
 }
 
-.me-2 {
-margin-right: 0.5rem;
+/* Gradient backgrounds for cards to match InstructorDashboard */
+.dashboard-main > .dashboard-card:nth-child(3) {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(168, 85, 247, 0.05));
+}
+
+.dashboard-main > .dashboard-card:nth-child(4) {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.05), rgba(239, 68, 68, 0.05));
+}
+
+.dashboard-main > .dashboard-card:nth-child(5) {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(5, 150, 105, 0.05));
 }
 
 /* Scrollbar Styling */
 .table-container::-webkit-scrollbar {
-width: 8px;
-height: 8px;
+  width: 8px;
+  height: 8px;
 }
 
 .table-container::-webkit-scrollbar-track {
-background: var(--item-bg);
-border-radius: 4px;
+  background: var(--item-bg);
+  border-radius: 4px;
 }
 
 .table-container::-webkit-scrollbar-thumb {
-background: var(--text-secondary);
-border-radius: 4px;
+  background: var(--text-secondary);
+  border-radius: 4px;
 }
 
 .table-container::-webkit-scrollbar-thumb:hover {
-background: var(--primary);
+  background: var(--primary);
 }
 
-/* Add animation for loading spinner */
-@keyframes spin {
-0% { transform: rotate(0deg); }
-100% { transform: rotate(360deg); }
+/* Empty state styling */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+  background: var(--item-bg);
+  border-radius: 0.5rem;
+  min-height: 150px;
 }
 
-.spinner-border {
-animation: spin 1s linear infinite;
+.empty-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  opacity: 0.7;
 }
 
-/* Transitions for better UX */
-.stat-card, .dashboard-card, .action-btn, .action-btn-small, .pagination-btn {
-transition: all 0.2s ease-in-out;
+.empty-state p {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+.empty-subtext {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+/* Utility classes for spacing */
+.me-1 {
+  margin-right: 0.25rem;
+}
+
+.me-2 {
+  margin-right: 0.5rem;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 1rem;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .chart-wrapper {
+    height: 250px;
+  }
+  
+  .dashboard-table th,
+  .dashboard-table td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.9rem;
+  }
 }
 </style>

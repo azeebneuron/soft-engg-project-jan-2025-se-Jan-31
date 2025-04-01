@@ -247,7 +247,7 @@
     </div>
 
     <footer class="dashboard-footer">
-      Made with ❤️ by Dobby The Free-Elf
+      Made with ❤️ by DevAstators, And Special thanks to Dobby
     </footer>
   </div>
 </template>

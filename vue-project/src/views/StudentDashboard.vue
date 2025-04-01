@@ -240,7 +240,7 @@ export default {
   data() {
     return {
       isDarkMode: true,
-      studentName: 'Dobby',
+      studentName: 'Student',
       selectedFaculty: '',
       feedbackText: '',
       rating: 0,

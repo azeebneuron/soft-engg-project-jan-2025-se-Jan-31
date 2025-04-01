@@ -99,7 +99,7 @@ def initialize_chatbot():
     print("RAG Chatbot Initializing...")
     
     # Replace with your PDF path
-    pdf_path = "/Users/sambhavjha/soft-engg-project-jan-2025-se-Jan-31/backend/chatbot/IITM BS Degree Programme - Student Handbook.pdf"
+    pdf_path = "backend/chatbot/IITM BS Degree Programme - Student Handbook.pdf"
     
     if not os.path.exists(pdf_path):
         print(f"Error: File {pdf_path} not found.")

@@ -227,7 +227,7 @@
     </div>
 
     <footer class="dashboard-footer">
-      Updated with ❤️ by Dobby The Free-Elf
+      Updated with ❤️ by DevAstators
     </footer>
   </div>
 </template>

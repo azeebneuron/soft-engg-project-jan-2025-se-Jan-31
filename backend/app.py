@@ -2,7 +2,7 @@ from flask import request
 from flask import Flask
 from flask_restful import Api
 from flask_cors import CORS
-from flask_security import Security
+from flask_security import Security, hash_password
 from pymongo import MongoClient
 from models import db, user_datastore
 import json
@@ -94,19 +94,19 @@ def initialize_database(app):
                 
                 # Create default users
                 if not user_datastore.find_user(email="admin@a.com"):
-                    admin_user = user_datastore.create_user(email="admin@a.com", password="admin", username="admin")
+                    admin_user = user_datastore.create_user(email="admin@a.com", password=hash_password("admin"), username="admin")
                     user_datastore.add_role_to_user(admin_user, "admin")
                 
                 if not user_datastore.find_user(email="user@a.com"):
-                    student_user = user_datastore.create_user(email="user@a.com", password="user", username="user")
+                    student_user = user_datastore.create_user(email="user@a.com", password=hash_password("user"), username="user")
                     user_datastore.add_role_to_user(student_user, "student")
                 
                 if not user_datastore.find_user(email="instructor@a.com"):
-                    instructor = user_datastore.create_user(email="instructor@a.com", password="instructor", username="instructor")
+                    instructor = user_datastore.create_user(email="instructor@a.com", password=hash_password("instructor"), username="instructor")
                     user_datastore.add_role_to_user(instructor, "instructor")
                 
                 if not user_datastore.find_user(email="ta@a.com"):
-                    ta = user_datastore.create_user(email="ta@a.com", password="userta", username="ta")
+                    ta = user_datastore.create_user(email="ta@a.com", password=hash_password("userta"), username="ta")
                     user_datastore.add_role_to_user(ta, "ta")
                 
                 db.session.commit()
